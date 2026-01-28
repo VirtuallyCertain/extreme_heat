@@ -1,3 +1,8 @@
 # Ignore Jupyter notebook checkpoints
 .ipynb_checkpoints/
 **/.ipynb_checkpoints/
+
+# After running the code the zipped files will 
+# be extracted. These are to big to push to github.
+# Thats why exculde them.
+data/*_previous-1950-2023_RR-T-Vent.csv
