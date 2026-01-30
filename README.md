@@ -1,4 +1,4 @@
-# 🌡️ Extreme Heat Events in France +
+# 🌡️ Extreme Heat Events in France
 
 ## Research question
 🚨 **When are people exposed to dangerous heat conditions in France?**
