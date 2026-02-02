@@ -1,110 +1,30 @@
-# 🌡️ Extreme Heat Events in France
+Data & Features
 
-## Research question
-🚨 **When are people exposed to dangerous heat conditions in France?**
+Data is sourced from the Open-Meteo Historical API (2010–2024). This dataset is designed to beat the baseline model by providing physical atmospheric context for heatwave intensification.
 
-The objective is to build a predictor that can serve as an early heat alarm.
+## Data Source
+All data is retrieved via the **Open-Meteo Historical Weather API**. This source provides consistent, hourly meteorological records that are aggregated into daily metrics for model training.
 
-The project focuses on **extreme daily temperatures**, with a second-stage
-hourly exploration for selected historical events (e.g. the 2003 heatwave).
-Methods are chosen with attention to minimizing computational impact.
+## Feature Overview & Predictive Value
 
----
+We focus on specific atmospheric markers that provide a deeper context than simple temperature readings:
 
-## Project approach (DataScientest milestones)
+### Dataset Features & ML Predictive Value
 
-### Stage 1 – Data mining & visualization (Dec 19)
-- Start with temperature data only
-- Select stations
-- Explore daily temperature data
-- Understand data structure, biases, and coverage
-- Produce validated visualizations with commentary
+### 📊 Dataset Features & ML Predictive Value
 
-### Stage 2 – Pre-processing & feature engineering (Jan 9)
-- Clean data
-- Select variables
-- Engineer features for machine learning
+| Variable | Meaning | ML Predictive Value | Unit |
+| :--- | :--- | :--- | :--- |
+| **date** | Timestamp | Captures seasonality (e.g., summer peaks vs. shoulder seasons). | YYYY-MM-DD |
+| **temp_max_ref** | Max daily temperature | The target baseline for heat intensity levels. | °C |
+| **gph500_mean** | Air pressure (MSL) | Identifies "Heat Domes" and stable high-pressure systems. | hPa |
+| **humi** | Rel. Humidity | Distinguishes between humid/muggy vs. dry heatwaves. | % |
+| **dew** | Dew point | Measures absolute moisture; critical for nighttime cooling potential. | °C |
+| **temp_dew_spread** | Temp-Dew Point Diff. | **Key Indicator:** Measures air dryness and solar heating potential. | Δ°C |
+| **city** | City identifier | Provides regional context (e.g., coastal Marseille vs. inland Paris). | Text |
 
-### Stage 3 – Modeling (Jan–Feb)
-- Baseline models (Random Forest)
-- Optimization and interpretation
+## Why these features?
+By using the **Dew Point Spread** and **Air Pressure** as features, the model can distinguish between a standard hot summer day and a dangerous, stagnant heatwave event. These variables act as "early warning" signals that traditional baseline models often miss.
 
-### Stage 4 – Application & defense (Feb)
-- Streamlit app to explore extreme heat events
-- Final report and GitHub repository
-
----
-
-## Data sources
-
-### Daily data (main dataset)
-**Météo-France daily climatological data**, accessed via the official open-data
-portal **data.gouv.fr**.
-
-- Dataset: *Données climatologiques de base – quotidiennes*
-- Period: **1950–2023**
-- Key variable: **TX** (daily maximum temperature)
-
-https://www.data.gouv.fr/datasets/donnees-climatologiques-de-base-quotidiennes
-
-**Search terms on data.gouv.fr**
-- `données climatologiques de base quotidiennes`
-- `quot_departement_XX`
-
-**Processed temperature data**
-https://drive.google.com/file/d/1Gk5nXnru6G_UXIPqt9Y_SqYJfYldZPkg
-
----
-
-### Hourly data (optional, targeted use)
-Used only for in-depth analysis of selected extreme events.
-
-- Dataset: *Données climatologiques de base – horaires*
-
-https://www.data.gouv.fr/datasets/donnees-climatologiques-de-base-horaires/
-
-**Search terms**
-- `données climatologiques de base horaires`
-- `hor_departement_XX`
-
-Preprocesssed temperature data: **https://drive.google.com/file/d/1Gk5nXnru6G_UXIPqt9Y_SqYJfYldZPkg/view?usp=drive_link **
----
-
-## Study regions
-Four French départements representing different regions:
-- Paris (75)
-- Lyon (69)
-- Bordeaux (33)
-- Marseille (13)
-
-For each département, the corresponding **RR-T-Vent daily file** is downloaded.
-Départements are identified by the first two digits of the postal code.
-
----
-
-## Station selection
-For each city, approximately **five stations** are selected using objective criteria:
-- long TX record
-- recent data availability
-- data completeness
-
-The same selection logic is applied to all cities using reproducible code.
-
----
-
-## Current focus
-👉 **Data visualization**
-- explore distributions of TX
-- identify extreme days and years
-- compare cities
-- detect trends and potential biases
-
-This corresponds to **Stage 1: Data mining & Data visualization**.
-
----
-
-## Scope limitations
-This project does **not** include:
-- long-term climate projections
-- full physiological wet-bulb modeling
-- operational weather forecasting
+## Data Integrity
+Every data fetch includes an automated **Plausibility Check**. This ensures that all retrieved values (Pressure, Temperature, and Humidity) align with physical meteorological limits before being used in the training pipeline.
