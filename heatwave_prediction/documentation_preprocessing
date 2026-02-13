@@ -1,0 +1,81 @@
+================================================================================
+WEATHER DATA PROCESSING & ANALYSIS PIPELINE                 February 13, 2026
+================================================================================
+
+This pipeline is designed for the standardized processing, archiving, and 
+statistical visualization of historical urban weather data. 
+It supports both .csv and .parquet formats.
+
+--------------------------------------------------------------------------------
+1. DATA STRUCTURE & PREREQUISITES
+--------------------------------------------------------------------------------
+
+INPUT FORMAT:
+Files must follow the naming convention: [city]_[suffix].[extension]
+Example: lyon_2024_raw.csv
+
+CRITICAL NOTE:
+Data must be manually checked for NaNs (missing values) and other 
+inconsistencies BEFORE running the processing script.
+
+OUTPUT FORMAT:
+Two files are generated per city in the output directory:
+- .parquet : Cleaned and chronologically sorted data.
+- .json    : Metadata (timeframe, row count, list of variables).
+
+OUTPUT NAMING CONVENTION:
+[city]_[startyear]-[endyear]_vars[count]_v1.parquet
+
+--------------------------------------------------------------------------------
+2. SCRIPT 1: DATA PROCESSING
+--------------------------------------------------------------------------------
+
+WORKFLOW:
+The script automates the standardization of raw datasets.
+
+KEY FUNCTIONS:
+- Directory Management: Automatically creates output folders if missing.
+- Column Mapping: Identifies time-related columns (e.g., 'time' or 'date') 
+  and renames them uniformly to 'timestamp'.
+- Type Conversion: Converts timestamps into proper Datetime objects.
+- Metadata Export: Writes statistical summaries to a JSON file for quick 
+  reference without needing to load the full Parquet file.
+
+--------------------------------------------------------------------------------
+3. SCRIPT 2: STATISTICAL ANALYSIS & VISUALIZATION
+--------------------------------------------------------------------------------
+
+This script is used for Exploratory Data Analysis (EDA) of the processed data.
+
+FEATURES:
+- Color Scheme: Each city is assigned a unique color code for consistent 
+  recognition across all plots (e.g., Paris = Green, Lyon = Yellow).
+- Statistical Summary: Generates a table with Mean, Std Dev, and Max values 
+  for all available weather variables.
+- Boxplot Comparisons: Creates horizontal boxplots for every variable 
+  (Temperature, Wind, etc.) to compare cities and identify outliers or 
+  climatic trends.
+
+--------------------------------------------------------------------------------
+4. TECHNICAL REQUIREMENTS
+--------------------------------------------------------------------------------
+
+Required Python Libraries:
+- pandas
+- seaborn
+- matplotlib
+- pyarrow (or fastparquet for Parquet support)
+- os, json (standard libraries)
+
+INSTALLATION:
+pip install pandas seaborn matplotlib pyarrow
+
+--------------------------------------------------------------------------------
+5. CONFIGURATION
+--------------------------------------------------------------------------------
+
+Ensure the directory paths are correctly set within the scripts:
+INPUT_DIR  = "/path/to/your/raw_data"
+OUTPUT_DIR = "/path/to/your/processed_data"
+
+================================================================================
