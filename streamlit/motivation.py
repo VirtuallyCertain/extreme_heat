@@ -18,7 +18,7 @@ COL_TEMPERATURE = "TX"
 HEAT_TEMPERATURE_THRESHOLD = 35.0
 MIN_CONSECUTIVE_DAYS = 3
 
-APP_TITLE = "🌡️ Extreme Heat Events Monitoring"
+APP_TITLE = "🌡️ Introduction & Motivation"
 SIDEBAR_TITLE = "Filters"
 
 @st.cache_data
@@ -99,21 +99,60 @@ def detect_heatwaves(_df, temp_threshold, min_days):
 
 
 def show_temperature_figure():
-    st.subheader("Temperature Trends by City")
+    st.subheader("Temperature Trends by City for best Station")
     cities = ["Paris", "Marseille", "Lyon", "Bordeaux", "All Cities"]
+    all_cities = "All_Cities"
 
     tabs = st.tabs(cities)
 
-    for i, city in enumerate(cities):
-        with tabs[i]:
-            st.write(f"### Analysis for {city}")
+    # Paris
+    with tabs[0]:
+        st.write(f"### Analysis for {cities[0]}")
+        st.image(f"../figures/1_figs/{cities[0]}_daily.png", use_container_width=True)
+        st.image(f"../figures/1_figs/{cities[0]}_annual_mean.png", use_container_width=True)
+        st.image(f"../figures/1_figs/{cities[0]}_summer_mean.png", use_container_width=True)
+        st.image(f"../figures/1_figs/{cities[0]}_daily_30drolling.png", use_container_width=True)
+        st.image(f"../figures/1_figs/{cities[0]}_annual_mean_trend.png", use_container_width=True)
+    
+    # Marseille
+    with tabs[1]:
+        st.write(f"### Analysis for {cities[1]}")
+        st.image(f"../figures/1_figs/{cities[1]}_daily.png", use_container_width=True)
+        st.image(f"../figures/1_figs/{cities[1]}_annual_mean.png", use_container_width=True)
+        st.image(f"../figures/1_figs/{cities[1]}_summer_mean.png", use_container_width=True)
+        st.image(f"../figures/1_figs/{cities[1]}_daily_30drolling.png", use_container_width=True)
+        st.image(f"../figures/1_figs/{cities[1]}_annual_mean_trend.png", use_container_width=True)
+    
+    # Lyon
+    with tabs[2]:
+        st.write(f"### Analysis for {cities[2]}")
+        st.image(f"../figures/1_figs/{cities[2]}_daily.png", use_container_width=True)
+        st.image(f"../figures/1_figs/{cities[2]}_annual_mean.png", use_container_width=True)
+        st.image(f"../figures/1_figs/{cities[2]}_summer_mean.png", use_container_width=True)
+        st.image(f"../figures/1_figs/{cities[2]}_daily_30drolling.png", use_container_width=True)
+        st.image(f"../figures/1_figs/{cities[2]}_annual_mean_trend.png", use_container_width=True)
+    
+    # Bordeaux
+    with tabs[3]:
+        st.write(f"### Analysis for {cities[3]}")
+        st.image(f"../figures/1_figs/{cities[3]}_daily.png", use_container_width=True)
+        st.image(f"../figures/1_figs/{cities[3]}_annual_mean.png", use_container_width=True)
+        st.image(f"../figures/1_figs/{cities[3]}_summer_mean.png", use_container_width=True)
+        st.image(f"../figures/1_figs/{cities[3]}_daily_30drolling.png", use_container_width=True)
+        st.image(f"../figures/1_figs/{cities[3]}_annual_mean_trend.png", use_container_width=True)
+    
+    # All Cities
+    with tabs[4]:
+        st.write(f"### Analysis for {cities[4]}")
+        st.image(f"../figures/1_figs/{all_cities}_annual_summer_mean.png", use_container_width=True)
+        st.image(f"../figures/1_figs/{all_cities}_number_extreme_days.png", use_container_width=True)
+        st.image(f"../figures/1_figs/{all_cities}_annual_share_extreme_days.png", use_container_width=True)
 
 
 def show_page():
     st.title(APP_TITLE)
     st.sidebar.title(SIDEBAR_TITLE)
 
-    show_temperature_figure()
     
     with st.spinner("Loading data..."):
         df = load_data(CITY_FILES)
@@ -174,7 +213,7 @@ def show_page():
         else:
             st.metric("Avg. duration (days)", "–")
     
-    st.subheader("Heat events per station")
+    st.subheader("Heat events per station (all data)")
     
     if not filtered_hw.empty:
         station_counts = (
@@ -205,7 +244,11 @@ def show_page():
         st.bar_chart(timeline.set_index("month")["count"])
     else:
         st.info("No data to display.")
+
+    show_temperature_figure()
     
     if show_raw_data:
         st.subheader("Filtered heatwave data")
         st.dataframe(filtered_hw, use_container_width=True)
+
+
