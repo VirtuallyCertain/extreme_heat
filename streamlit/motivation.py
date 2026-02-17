@@ -18,7 +18,7 @@ COL_TEMPERATURE = "TX"
 HEAT_TEMPERATURE_THRESHOLD = 35.0
 MIN_CONSECUTIVE_DAYS = 3
 
-APP_TITLE = "🌡️ Introduction & Motivation"
+APP_TITLE = "Introduction & Motivation"
 SIDEBAR_TITLE = "Filters"
 
 @st.cache_data
