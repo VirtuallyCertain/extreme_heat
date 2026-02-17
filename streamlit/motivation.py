@@ -100,7 +100,7 @@ def detect_heatwaves(_df, temp_threshold, min_days):
 
 def show_temperature_figure():
     st.subheader("Temperature Trends by City")
-    cities = ["Paris", "Marseille", "Lyon", "Bordeaux"]
+    cities = ["Paris", "Marseille", "Lyon", "Bordeaux", "All Cities"]
 
     tabs = st.tabs(cities)
 
