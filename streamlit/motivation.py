@@ -98,9 +98,22 @@ def detect_heatwaves(_df, temp_threshold, min_days):
     return pd.DataFrame(heat_events)
 
 
+def show_temperature_figure():
+    st.subheader("Temperature Trends by City")
+    cities = ["Paris", "Marseille", "Lyon", "Bordeaux"]
+
+    tabs = st.tabs(cities)
+
+    for i, city in enumerate(cities):
+        with tabs[i]:
+            st.write(f"### Analysis for {city}")
+
+
 def show_page():
     st.title(APP_TITLE)
     st.sidebar.title(SIDEBAR_TITLE)
+
+    show_temperature_figure()
     
     with st.spinner("Loading data..."):
         df = load_data(CITY_FILES)
