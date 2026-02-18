@@ -10,11 +10,12 @@ import streamlit as st
 # ]
 
 # For streamlit we need to change the "start" of the directory to the repo root
+BASE_DIR = ""
 CITY_FILES = [
-    "data/0_initial/Paris_Q_75_previous-1950-2024_RR-T-Vent.zip",
-    "data/0_initial/Marseille_Q_13_previous-1950-2024_RR-T-Vent.zip",
-    "data/0_initial/Lyon_Q_69_previous-1950-2024_RR-T-Vent.zip",
-    "data/0_initial/Bordeaux_Q_33_previous-1950-2024_RR-T-Vent.zip",
+    f"{BASE_DIR}data/0_initial/Paris_Q_75_previous-1950-2024_RR-T-Vent.zip",
+    f"{BASE_DIR}data/0_initial/Marseille_Q_13_previous-1950-2024_RR-T-Vent.zip",
+    f"{BASE_DIR}data/0_initial/Lyon_Q_69_previous-1950-2024_RR-T-Vent.zip",
+    f"{BASE_DIR}data/0_initial/Bordeaux_Q_33_previous-1950-2024_RR-T-Vent.zip",
 ]
 
 COL_STATION = "NOM_USUEL"
@@ -119,12 +120,12 @@ def show_temperature_figure():
         
         col1, col2 = st.columns(2)
         with col1:
-            st.image(f"../figures/1_figs/{cities[0]}_daily.png", width='content')
-            st.image(f"../figures/1_figs/{cities[0]}_summer_mean.png", width='content')
-            st.image(f"../figures/1_figs/{cities[0]}_annual_mean_trend.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[0]}_daily.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[0]}_summer_mean.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[0]}_annual_mean_trend.png", width='content')
         with col2:
-            st.image(f"../figures/1_figs/{cities[0]}_annual_mean.png", width='content')
-            st.image(f"../figures/1_figs/{cities[0]}_daily_30drolling.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[0]}_annual_mean.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[0]}_daily_30drolling.png", width='content')
     
     # Marseille
     with tabs[1]:
@@ -132,12 +133,12 @@ def show_temperature_figure():
         
         col1, col2 = st.columns(2)
         with col1:
-            st.image(f"../figures/1_figs/{cities[1]}_daily.png", width='content')
-            st.image(f"../figures/1_figs/{cities[1]}_summer_mean.png", width='content')
-            st.image(f"../figures/1_figs/{cities[1]}_annual_mean_trend.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[1]}_daily.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[1]}_summer_mean.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[1]}_annual_mean_trend.png", width='content')
         with col2:
-            st.image(f"../figures/1_figs/{cities[1]}_annual_mean.png", width='content')
-            st.image(f"../figures/1_figs/{cities[1]}_daily_30drolling.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[1]}_annual_mean.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[1]}_daily_30drolling.png", width='content')
     
     # Lyon
     with tabs[2]:
@@ -145,12 +146,12 @@ def show_temperature_figure():
         
         col1, col2 = st.columns(2)
         with col1:
-            st.image(f"../figures/1_figs/{cities[2]}_daily.png", width='content')
-            st.image(f"../figures/1_figs/{cities[2]}_summer_mean.png", width='content')
-            st.image(f"../figures/1_figs/{cities[2]}_annual_mean_trend.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[2]}_daily.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[2]}_summer_mean.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[2]}_annual_mean_trend.png", width='content')
         with col2:
-            st.image(f"../figures/1_figs/{cities[2]}_annual_mean.png", width='content')
-            st.image(f"../figures/1_figs/{cities[2]}_daily_30drolling.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[2]}_annual_mean.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[2]}_daily_30drolling.png", width='content')
     
     # Bordeaux
     with tabs[3]:
@@ -158,24 +159,24 @@ def show_temperature_figure():
         
         col1, col2 = st.columns(2)
         with col1:
-            st.image(f"../figures/1_figs/{cities[3]}_daily.png", width='content')
-            st.image(f"../figures/1_figs/{cities[3]}_summer_mean.png", width='content')
-            st.image(f"../figures/1_figs/{cities[3]}_annual_mean_trend.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[3]}_daily.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[3]}_summer_mean.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[3]}_annual_mean_trend.png", width='content')
         with col2:
-            st.image(f"../figures/1_figs/{cities[3]}_annual_mean.png", width='content')
-            st.image(f"../figures/1_figs/{cities[3]}_daily_30drolling.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[3]}_annual_mean.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[3]}_daily_30drolling.png", width='content')
     
     # All Cities
     with tabs[4]:
         st.write(f"### Analysis for {cities[4]}")
-        st.image(f"../figures/1_figs/{all_cities}_annual_summer_mean.png", width='content')
-        st.image(f"../figures/1_figs/{all_cities}_number_extreme_days.png", width='content')
-        st.image(f"../figures/1_figs/{all_cities}_annual_share_extreme_days.png", width='content')
+        st.image(f"figures/1_figs/{all_cities}_annual_summer_mean.png", width='content')
+        st.image(f"figures/1_figs/{all_cities}_number_extreme_days.png", width='content')
+        st.image(f"figures/1_figs/{all_cities}_annual_share_extreme_days.png", width='content')
 
 
 def show_page():
     st.title(APP_TITLE)
-    #st.image(f"../datagouv-logo.png", width='content')
+    #st.image(f"{BASE_DIR}datagouv-logo.png", width='content')
     st.link_button(
             "Data source (www.data.gouv.fr)", 
             "https://www.data.gouv.fr/datasets/donnees-climatologiques-de-base-quotidiennes-stations-complementaires?utm_source=chatgpt.com",
