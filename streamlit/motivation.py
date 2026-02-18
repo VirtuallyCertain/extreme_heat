@@ -167,6 +167,10 @@ def show_temperature_figure():
 
 def show_page():
     st.title(APP_TITLE)
+    st.link_button(
+            "Data source (www.data.gouv.fr)", 
+            "https://www.data.gouv.fr/datasets/donnees-climatologiques-de-base-quotidiennes-stations-complementaires?utm_source=chatgpt.com",
+            type="primary")
     st.sidebar.title(SIDEBAR_TITLE)
 
     
