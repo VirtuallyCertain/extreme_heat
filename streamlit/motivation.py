@@ -2,11 +2,19 @@ import pandas as pd
 import streamlit as st
 
 
+# CITY_FILES = [
+#     "../data/0_initial/Paris_Q_75_previous-1950-2024_RR-T-Vent.zip",
+#     "../data/0_initial/Marseille_Q_13_previous-1950-2024_RR-T-Vent.zip",
+#     "../data/0_initial/Lyon_Q_69_previous-1950-2024_RR-T-Vent.zip",
+#     "../data/0_initial/Bordeaux_Q_33_previous-1950-2024_RR-T-Vent.zip",
+# ]
+
+# For streamlit we need to change the "start" of the directory to the repo root
 CITY_FILES = [
-    "../data/0_initial/Paris_Q_75_previous-1950-2024_RR-T-Vent.zip",
-    "../data/0_initial/Marseille_Q_13_previous-1950-2024_RR-T-Vent.zip",
-    "../data/0_initial/Lyon_Q_69_previous-1950-2024_RR-T-Vent.zip",
-    "../data/0_initial/Bordeaux_Q_33_previous-1950-2024_RR-T-Vent.zip",
+    "data/0_initial/Paris_Q_75_previous-1950-2024_RR-T-Vent.zip",
+    "data/0_initial/Marseille_Q_13_previous-1950-2024_RR-T-Vent.zip",
+    "data/0_initial/Lyon_Q_69_previous-1950-2024_RR-T-Vent.zip",
+    "data/0_initial/Bordeaux_Q_33_previous-1950-2024_RR-T-Vent.zip",
 ]
 
 COL_STATION = "NOM_USUEL"
