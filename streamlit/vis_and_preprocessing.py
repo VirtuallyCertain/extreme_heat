@@ -15,6 +15,7 @@ import os
 from scipy import stats
 
 PAGE_TITLE = "Data Explanation & First Model"
+BASE_DIR = "../"
 
 def show_page():
     st.title(PAGE_TITLE)
@@ -151,7 +152,7 @@ def show_page():
                         # model.fit(X_train, y_train)
                         
                         # Automatically save model
-                        model_filename = f"gbr_model_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pkl"
+                        model_filename = f"{BASE_DIR}/models/gbr_model_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pkl"
                         joblib.dump(model, model_filename)
                         
                         st.success(f"✅ Model successfully trained and automatically saved as '{model_filename}'!")
