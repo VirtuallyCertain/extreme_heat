@@ -13,9 +13,7 @@ if page == "0. Introduction & Motivation":
     motivation.show_page()
 
 elif page == "1. Data Explanation & First Model":
-    st.title("Data Explanation & First Model")
-    st.write("Content goes here...")
-    # vp.show_page()
+    vp.show_page()
 
 elif page == "2. Improvements & Final Model":
     st.title("Improvements & Final Model")

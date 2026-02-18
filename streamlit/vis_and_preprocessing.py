@@ -2,6 +2,8 @@ from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
 
+import joblib
+from datetime import datetime
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error, r2_score
@@ -17,6 +19,161 @@ PAGE_TITLE = "Data Explanation & First Model"
 def show_page():
     st.title(PAGE_TITLE)
 
+    # st.title("GradientBoostingRegressor Training with Data Filtering")
+
+    # Sidebar for Data Filtering
+    st.sidebar.header("Data Filtering")
+
+    # Filter method selection
+    filter_method = st.sidebar.radio(
+        "Filter Method",
+        ["Threshold", "Quantile"]
+    )
+
+    if filter_method == "Threshold":
+        threshold_value = st.sidebar.number_input(
+            "Threshold Value",
+            min_value=0.0,
+            value=35.0,
+            step=0.5
+        )
+    else:
+        quantile_value = st.sidebar.slider(
+            "Quantile",
+            min_value=0.85,
+            max_value=1.0,
+            value=0.95,
+            step=0.05
+        )
+
+    # Number of cumulative days
+    cumulative_days = st.sidebar.number_input(
+        "Number of Cumulative Days",
+        min_value=3,
+        value=3,
+        step=1
+    )
+
+    # City selection
+    st.sidebar.subheader("City Selection")
+    all_cities = st.sidebar.checkbox("All Cities", value=False)
+
+    if not all_cities:
+        cities = st.sidebar.multiselect(
+            "Select Cities",
+            ["Marseille", "Bordeaux", "Paris", "Lyon"],
+            default=["Paris"]
+        )
+    else:
+        cities = ["Marseille", "Bordeaux", "Paris", "Lyon"]
+
+    topics = ["Data Explanation", "Model & Train", "Predict"]
+
+    tabs = st.tabs(topics)
+
+    # Paris
+    with tabs[0]:
+        st.subheader("Data Explanation")
+    with tabs[1]:
+        # Main area - Display filter settings
+        st.subheader("Data Filter Settings:")
+        col1, col2, col3 = st.columns(3)
+
+        with col1:
+            st.write(f"**Filter Method:** {filter_method}")
+            if filter_method == "Threshold":
+                st.write(f"**Threshold Value:** {threshold_value}")
+            else:
+                st.write(f"**Quantile:** {quantile_value}")
+
+        with col2:
+            st.write(f"**Cumulative Days:** {cumulative_days}")
+
+        with col3:
+            st.write(f"**Selected Cities:** {', '.join(cities)}")
+
+        st.divider()
+
+        # Model Parameters in main window with frame/box
+        st.subheader("Model Parameters")
+
+        with st.container(border=True):
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                n_estimators = st.slider("n_estimators", 50, 500, 100, 10)
+                learning_rate = st.slider("learning_rate", 0.01, 0.3, 0.1, 0.01)
+                max_depth = st.slider("max_depth", 1, 10, 3, 1)
+            
+            with col2:
+                min_samples_split = st.slider("min_samples_split", 2, 20, 2, 1)
+                min_samples_leaf = st.slider("min_samples_leaf", 1, 10, 1, 1)
+                subsample = st.slider("subsample", 0.5, 1.0, 1.0, 0.1)
+
+        st.divider()
+
+        # Training Button
+        if st.button("Train and Save Model", type="primary", use_container_width=True):
+            if not all_cities and len(cities) == 0:
+                st.error("Please select at least one city!")
+            else:
+                with st.spinner("Filtering data and training model..."):
+                    try:
+                        # Implement your data filtering here
+                        # df = pd.read_csv("your_dataset.csv")
+                        # df_filtered = df[df['city'].isin(cities)]
+                        
+                        # Apply filter
+                        # if filter_method == "Threshold":
+                        #     df_filtered = df_filtered[df_filtered['value'] >= threshold_value]
+                        # else:
+                        #     threshold = df_filtered['value'].quantile(quantile_value)
+                        #     df_filtered = df_filtered[df_filtered['value'] >= threshold]
+                        
+                        # Calculate cumulative days
+                        # df_filtered['cumulative'] = df_filtered.groupby('city')['value'].rolling(
+                        #     window=cumulative_days
+                        # ).sum().reset_index(0, drop=True)
+                        
+                        # X_train, y_train = ... (your feature creation)
+                        
+                        # Create and train model
+                        model = GradientBoostingRegressor(
+                            n_estimators=n_estimators,
+                            learning_rate=learning_rate,
+                            max_depth=max_depth,
+                            min_samples_split=min_samples_split,
+                            min_samples_leaf=min_samples_leaf,
+                            subsample=subsample,
+                            random_state=42
+                        )
+                        
+                        # model.fit(X_train, y_train)
+                        
+                        # Automatically save model
+                        model_filename = f"gbr_model_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pkl"
+                        joblib.dump(model, model_filename)
+                        
+                        st.success(f"✅ Model successfully trained and automatically saved as '{model_filename}'!")
+                        
+                        # Optional: Display model metrics
+                        # score = model.score(X_test, y_test)
+                        # st.metric("R² Score", f"{score:.4f}")
+                        
+                        # Download button for the model
+                        with open(model_filename, "rb") as f:
+                            st.download_button(
+                                label="📥 Download Model",
+                                data=f,
+                                file_name=model_filename,
+                                mime="application/octet-stream"
+                            )
+                            
+                    except Exception as e:
+                        st.error(f"Error during training: {str(e)}")
+
+    with tabs[2]:
+        st.subheader("Predict")
 
 
 #def load_city_data(city, temp_dir, wind_dir):

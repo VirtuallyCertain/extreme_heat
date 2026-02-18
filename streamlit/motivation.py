@@ -1,3 +1,4 @@
+import base64
 import pandas as pd
 import streamlit as st
 
@@ -10,7 +11,7 @@ import streamlit as st
 # ]
 
 # For streamlit we need to change the "start" of the directory to the repo root
-BASE_DIR = ""
+BASE_DIR = "../"
 CITY_FILES = [
     f"{BASE_DIR}data/0_initial/Paris_Q_75_previous-1950-2024_RR-T-Vent.zip",
     f"{BASE_DIR}data/0_initial/Marseille_Q_13_previous-1950-2024_RR-T-Vent.zip",
@@ -169,20 +170,30 @@ def show_temperature_figure():
     # All Cities
     with tabs[4]:
         st.write(f"### Analysis for {cities[4]}")
-        st.image(f"figures/1_figs/{all_cities}_annual_summer_mean.png", width='content')
-        st.image(f"figures/1_figs/{all_cities}_number_extreme_days.png", width='content')
-        st.image(f"figures/1_figs/{all_cities}_annual_share_extreme_days.png", width='content')
+        st.image(f"{BASE_DIR}figures/1_figs/{all_cities}_annual_summer_mean.png", width='content')
+        st.image(f"{BASE_DIR}figures/1_figs/{all_cities}_number_extreme_days.png", width='content')
+        st.image(f"{BASE_DIR}figures/1_figs/{all_cities}_annual_share_extreme_days.png", width='content')
 
 
 def show_page():
     st.title(APP_TITLE)
-    #st.image(f"{BASE_DIR}datagouv-logo.png", width='content')
-    st.link_button(
-            "Data source (www.data.gouv.fr)", 
-            "https://www.data.gouv.fr/datasets/donnees-climatologiques-de-base-quotidiennes-stations-complementaires?utm_source=chatgpt.com",
-            type="primary")
-    st.sidebar.title(SIDEBAR_TITLE)
 
+    def get_image_base64(image_path):
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+
+    img_base64 = get_image_base64(f"{BASE_DIR}figures/datagouv-logo.png")
+
+    st.markdown(
+        f'''
+        <a href="https://www.data.gouv.fr/datasets/donnees-climatologiques-de-base-quotidiennes-stations-complementaires?utm_source=chatgpt.com" target="_blank">
+            <img src="data:image/jpeg;base64,{img_base64}" width="200">
+        </a>
+        ''',
+        unsafe_allow_html=True
+    )
+
+    st.sidebar.title(SIDEBAR_TITLE)
     
     with st.spinner("Loading data..."):
         df = load_data(CITY_FILES)
