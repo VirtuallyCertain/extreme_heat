@@ -176,7 +176,6 @@ def show_temperature_figure():
 
 
 def show_page():
-    st.title(APP_TITLE)
 
     def get_image_base64(image_path):
         with open(image_path, "rb") as img_file:
@@ -192,6 +191,7 @@ def show_page():
         ''',
         unsafe_allow_html=True
     )
+    st.title(APP_TITLE)
 
     st.sidebar.title(SIDEBAR_TITLE)
     

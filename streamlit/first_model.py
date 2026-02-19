@@ -1,3 +1,4 @@
+import base64
 from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -18,6 +19,22 @@ PAGE_TITLE = "Data Explanation & First Model"
 BASE_DIR = ""
 
 def show_page():
+
+    def get_image_base64(image_path):
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+
+    img_base64 = get_image_base64(f"{BASE_DIR}figures/datagouv-logo.png")
+
+    st.markdown(
+        f'''
+        <a href="https://www.data.gouv.fr/datasets/donnees-climatologiques-de-base-quotidiennes-stations-complementaires?utm_source=chatgpt.com" target="_blank">
+            <img src="data:image/jpeg;base64,{img_base64}" width="200">
+        </a>
+        ''',
+        unsafe_allow_html=True
+    )
+
     st.title(PAGE_TITLE)
 
     # st.title("GradientBoostingRegressor Training with Data Filtering")
@@ -304,7 +321,7 @@ def show_page():
         with col1:
             st.write(f"**Filter Method:** {filter_method}")
             if filter_method == "Threshold":
-                st.write(f"**Threshold Value:** {TX_THRESHOLD}")
+                st.write(f"**Threshold Value:** {TX_THRESHOLD} (°C)")
             else:
                 st.write(f"**Quantile:** {quantile_value}")
 
@@ -324,14 +341,13 @@ def show_page():
             
             with col1:
                 n_estimators = st.number_input("n_estimators", 50, 500, 100, 10)
-                learning_rate = st.slider("learning_rate", 0.01, 0.3, 0.1, 0.01)
                 max_depth = st.number_input("max_depth", 1, 10, 3, 1)
                 test_size = st.number_input("test size", 0.1, 0.4, 0.3, 0.01)
-            
             with col2:
                 min_samples_split = st.slider("min_samples_split", 10, 100, 20, 1)
                 min_samples_leaf = st.slider("min_samples_leaf", 10, 100, 20, 1)
                 subsample = st.slider("subsample", 0.5, 1.0, 1.0, 0.1)
+                learning_rate = st.slider("learning_rate", 0.01, 0.3, 0.1, 0.01)
 
         st.divider()
 
