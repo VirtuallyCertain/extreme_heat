@@ -23,7 +23,7 @@ def show_page():
     # st.title("GradientBoostingRegressor Training with Data Filtering")
 
 
-    topics = ["Data Explanation", "Model & Train", "Predict"]
+    topics = ["Data Explanation", "Model Train & Predit"]
 
     tabs = st.tabs(topics)
 
@@ -100,6 +100,10 @@ def show_page():
         step=1
     )
 
+    df_ml = pd.DataFrame()
+    X = pd.DataFrame()
+    y = pd.DataFrame()
+
     if st.sidebar.button("Load Data", type="primary"):
         with st.spinner(f"Loading data for {CITY}..."):
             try:
@@ -125,7 +129,7 @@ def show_page():
         # 3. Raw Data Preview
         # ======================================================
         st.subheader("Raw Data Preview")
-        st.dataframe(df_city.head(10), use_container_width=True)
+        st.dataframe(df_city.head(10), width="content")
 
         st.divider()
 
@@ -239,7 +243,10 @@ def show_page():
             "wind_dir_inst_deg"
         ]
         target = "TX"
+
         df_ml = df_summer[features + [target]].dropna()
+        X = df_ml[features]
+        y = df_ml[target]
 
         fig2, axes2 = plt.subplots(1, 2, figsize=(14, 4))
 
@@ -265,14 +272,6 @@ def show_page():
 
         st.divider()
         anzahl_stationen = df_summer_copy["NUM_POSTE"].nunique()
-        print("Anzahl Stationen gesamt:", anzahl_stationen)
-        print("Anzahl Stationen gesamt:", anzahl_stationen)
-        print("Anzahl Stationen gesamt:", anzahl_stationen)
-        print("Anzahl Stationen gesamt:", anzahl_stationen)
-        print("Anzahl Stationen gesamt:", anzahl_stationen)
-        print("Anzahl Stationen gesamt:", anzahl_stationen)
-        print(df_summer_copy[df_summer_copy["date"] == df_summer_copy["date"].iloc[0]])
-        print("Size:", df_summer_copy.groupby("date").size().value_counts())
 
         # ======================================================
         # 8. ML Data Preview
@@ -286,7 +285,7 @@ def show_page():
             st.write(f"**Missing values dropped:** {len(df_summer) - len(df_ml)}")
             st.write(f"**Target:** `{target}`")
 
-        st.dataframe(df_ml.head(10), use_container_width=True)
+        st.dataframe(df_ml.head(10), width="content")
 
         # Save processed data to session state for other tabs
         st.session_state["df_ml"] = df_ml
@@ -313,7 +312,7 @@ def show_page():
             st.write(f"**Cumulative Days:** {cumulative_days}")
 
         with col3:
-            st.write(f"**Selected Cities:** {', '.join(CITY)}")
+            st.write(f"Selected City: {CITY}")
 
         st.divider()
 
@@ -324,43 +323,31 @@ def show_page():
             col1, col2 = st.columns(2)
             
             with col1:
-                n_estimators = st.slider("n_estimators", 50, 500, 100, 10)
+                n_estimators = st.number_input("n_estimators", 50, 500, 100, 10)
                 learning_rate = st.slider("learning_rate", 0.01, 0.3, 0.1, 0.01)
-                max_depth = st.slider("max_depth", 1, 10, 3, 1)
+                max_depth = st.number_input("max_depth", 1, 10, 3, 1)
+                test_size = st.number_input("test size", 0.1, 0.4, 0.3, 0.01)
             
             with col2:
-                min_samples_split = st.slider("min_samples_split", 2, 20, 2, 1)
-                min_samples_leaf = st.slider("min_samples_leaf", 1, 10, 1, 1)
+                min_samples_split = st.slider("min_samples_split", 10, 100, 20, 1)
+                min_samples_leaf = st.slider("min_samples_leaf", 10, 100, 20, 1)
                 subsample = st.slider("subsample", 0.5, 1.0, 1.0, 0.1)
 
         st.divider()
 
         # Training Button
-        if st.button("Train and Save Model", type="primary", use_container_width=True):
-            if not all_cities and len(CITY) == 0:
+        if st.button("Train and Save Model", type="primary", width="content"):
+            if not CITY:
                 st.error("Please select at least one city!")
             else:
                 with st.spinner("Filtering data and training model..."):
                     try:
-                        # Implement your data filtering here
-                        # df = pd.read_csv("your_dataset.csv")
-                        # df_filtered = df[df['city'].isin(cities)]
+                        X_train, X_test, y_train, y_test = train_test_split(
+                            X, y,
+                            test_size=test_size,
+                            random_state=42
+                        )
                         
-                        # Apply filter
-                        # if filter_method == "Threshold":
-                        #     df_filtered = df_filtered[df_filtered['value'] >= TX_THRESHOLD]
-                        # else:
-                        #     threshold = df_filtered['value'].quantile(quantile_value)
-                        #     df_filtered = df_filtered[df_filtered['value'] >= threshold]
-                        
-                        # Calculate cumulative days
-                        # df_filtered['cumulative'] = df_filtered.groupby('city')['value'].rolling(
-                        #     window=cumulative_days
-                        # ).sum().reset_index(0, drop=True)
-                        
-                        # X_train, y_train = ... (your feature creation)
-                        
-                        # Create and train model
                         model = GradientBoostingRegressor(
                             n_estimators=n_estimators,
                             learning_rate=learning_rate,
@@ -371,29 +358,31 @@ def show_page():
                             random_state=42
                         )
                         
-                        # model.fit(X_train, y_train)
+                        model.fit(X_train, y_train)
                         
-                        # Automatically save model
-                        model_filename = f"{BASE_DIR}/models/gbr_model_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pkl"
+                        model_filename = f"{BASE_DIR}models/gbr_model_{CITY}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pkl"
                         joblib.dump(model, model_filename)
                         
                         st.success(f"✅ Model successfully trained and automatically saved as '{model_filename}'!")
                         
-                        # Optional: Display model metrics
-                        # score = model.score(X_test, y_test)
-                        # st.metric("R² Score", f"{score:.4f}")
-                        
-                        # Download button for the model
-                        with open(model_filename, "rb") as f:
-                            st.download_button(
-                                label="📥 Download Model",
-                                data=f,
-                                file_name=model_filename,
-                                mime="application/octet-stream"
-                            )
+                        y_pred = model.predict(X_test)
+
+                        results_df = pd.DataFrame([{
+                            "model": "Gradient Boosting (TX regression)",
+                            "MAE": mean_absolute_error(y_test, y_pred),
+                            "R2": r2_score(y_test, y_pred)
+                        }])
+
+                        st.subheader("Model Results")
+                        st.dataframe(results_df)
+
+                        importances = pd.Series(
+                            model.feature_importances_,
+                            index=features
+                        ).sort_values(ascending=False)
+
+                        st.subheader("Feature Importances")
+                        st.dataframe(importances.reset_index().rename(columns={"index": "Feature", 0: "Importance"}))
                             
                     except Exception as e:
                         st.error(f"Error during training: {str(e)}")
-
-    with tabs[2]:
-        st.subheader("Predict")
