@@ -1,5 +1,5 @@
 import streamlit as st
-import vis_and_preprocessing as vp
+import first_model
 import motivation
 
 st.set_page_config(page_title="Extreme Temperatures Project", layout="wide")
@@ -13,7 +13,7 @@ if page == "0. Introduction & Motivation":
     motivation.show_page()
 
 elif page == "1. Data Explanation & First Model":
-    vp.show_page()
+    first_model.show_page()
 
 elif page == "2. Improvements & Final Model":
     st.title("Improvements & Final Model")
