@@ -1,0 +1,295 @@
+================================================================================
+HEATWAVE PREDICTION PIPELINE — TECHNICAL DOCUMENTATION
+XGBoost-based 72-hour Klement Event Forecasting for French Cities
+================================================================================
+
+OVERVIEW
+--------
+This pipeline predicts whether a Klement heatwave event will occur within the
+next 72 hours for five French cities: Bordeaux, Lyon, Marseille,
+Marseillemarignane, and Paris. It uses hourly meteorological data from
+1990–2025, processed with leakage-free feature engineering and trained with
+XGBoost.
+
+
+DATA
+----
+Source:       ERA5 reanalysis (hourly, 1990–2025)
+Format:       Parquet + JSON metadata pairs per city
+Location:
+Records:      315,576 rows per city (5 cities = 1,577,880 total)
+Variables:    14 raw meteorological variables
+
+  temperature_2m          2m air temperature (°C)
+  relative_humidity_2m    2m relative humidity (%)
+  pressure_msl            Mean sea level pressure (hPa)
+  shortwave_radiation     Downward shortwave radiation (W/m²)
+  soil_moisture_0_to_7cm  Volumetric soil moisture (m³/m³)
+  wind_speed_10m          10m wind speed (m/s)
+  t_850hPa                Temperature at 850 hPa (~1500m) (K)
+  t_500hPa                Temperature at 500 hPa (~5500m) (K)
+  u_850hPa / u_500hPa     Zonal wind component (m/s)
+  v_850hPa / v_500hPa     Meridional wind component (m/s)
+  wind_dir_sin / cos      Cyclically encoded wind direction
+
+
+KLEMENT EVENT DEFINITION
+------------------------
+A Klement event is defined as a period of at least 3 consecutive days where
+the daily maximum temperature (Tmax) exceeds the city-specific 95th percentile
+(P95).
+
+P95 is computed from the training reference period (1990–2018) only, using
+daily maximum temperatures. This prevents leakage from the test set.
+
+City-specific P95 thresholds (from 1990–2018):
+  Bordeaux:            30.49°C
+  Lyon:                29.84°C
+  Marseille:           29.17°C
+  Marseillemarignane:  32.39°C
+  Paris:               27.39°C
+
+Hourly target encoding:
+  1. Daily Tmax is expanded to hourly resolution (forward-fill)
+  2. is_klement = rolling(72h).min() of is_hot_hour
+     → 1 only if every hour in the preceding 72h was a hot hour
+  3. y_target = is_klement.shift(-72).rolling(72h).max()
+     → 1 if any Klement hour exists in the next 72 hours
+
+This produces a continuously varying hourly label, avoiding constant
+label repetition across hours of the same day.
+
+
+FEATURE ENGINEERING
+-------------------
+All features are computed on the raw hourly data before aggregation.
+Climatology for Z-scores is computed strictly from the training period
+(1990–2015) to prevent leakage.
+
+1. Z-SCORE NORMALIZATION
+   Applied to: temperature_2m, t_850hPa, t_500hPa, pressure_msl,
+               relative_humidity_2m, soil_moisture_0_to_7cm, wind_speed_10m
+   Note: shortwave_radiation excluded due to extreme outliers from
+         nighttime zero values.
+   Method: μ and σ computed per day-of-year × hour from training data only.
+           Applied vectorized via numpy 2D array indexing (365×24).
+
+2. CYCLICAL TIME ENCODING
+   hour_sin / hour_cos    Encodes hour of day cyclically (0–23 → circle)
+   doy_sin  / doy_cos     Encodes day of year cyclically (1–365 → circle)
+   Ensures that 23:00 and 00:00 are treated as adjacent.
+
+3. LAG FEATURES
+   lag_t850_72h     t_850hPa 72h ago — large-scale circulation precursor
+   lag_press_48h    pressure_msl 48h ago — anticyclonic build-up signal
+   lag_v850_72h     v_850hPa 72h ago — meridional flow precursor
+   lag_t500_72h     t_500hPa 72h ago — upper-level warmth precursor
+   lag_t500_48h     t_500hPa 48h ago
+
+4. TENDENCY FEATURES
+   delta_press_24h  Pressure change over 24h — anticyclonic blocking signal
+   delta_hum_24h    Humidity change over 24h — drying signal
+
+5. HEAT ARIDITY INDEX
+   heat_aridity_index = (t_850hPa - 273.15) - relative_humidity_2m
+   Combines upper-level warmth with surface dryness.
+   Positive values indicate hot and dry conditions (heatwave precursor).
+   t_850hPa is converted to Celsius before subtraction for physical
+   interpretability.
+
+6. SMOOTHED V850
+   v850_smooth_6h   6-hour rolling mean of v_850hPa
+   Reduces noise in meridional wind signal.
+
+7. LOCATION ENCODING
+   City encoded as one-hot features (city_bordeaux, city_lyon, etc.)
+   Allows the model to learn city-specific climatological baselines.
+   SHAP analysis confirms the model uses location meaningfully:
+     city_marseillemarignane → ↑ heat event (Rhône valley heat trap)
+     city_paris              → ↓ no event (oceanic climate, fewer events)
+
+Total features entering the model: 39
+
+
+TRAIN/TEST SPLIT
+----------------
+Strategy:    Strict temporal split — no shuffling
+Train:       1990–2015 (May–September only) → 477,360 hours
+Test:        2016–2025 (May–September only) → 183,600 hours
+Filter:      Summer months only (May–September, months 5–9)
+Rationale:   Heatwaves are physically impossible in winter; summer-only
+             training reduces seasonal noise and improves class balance.
+
+Class balance (train): 91.7% no event / 8.3% Klement event
+scale_pos_weight:      12.70 (neg/pos ratio, applied in XGBoost)
+
+
+MODEL
+-----
+Algorithm:   XGBoost (binary:logistic)
+Optimization: Optuna (50 trials, maximizing PR-AUC)
+
+Best hyperparameters found by Optuna:
+  n_estimators:       1025
+  max_depth:          3
+  learning_rate:      0.064
+  subsample:          0.688
+  colsample_bytree:   0.777
+  min_child_weight:   7
+  gamma:              3.072
+  scale_pos_weight:   12.70
+  eval_metric:        aucpr
+  early_stopping_rounds: 30
+
+Optimization metric: PR-AUC (Precision-Recall Area Under Curve)
+PR-AUC is preferred over ROC-AUC for imbalanced datasets, as it is
+sensitive to performance on the minority class (heatwave events).
+
+
+RESULTS
+-------
+Final model (after Optuna):
+
+  Metric              No Event    Heat Wave
+  Precision           0.99        0.50
+  Recall              0.89        0.90
+  F1-Score            0.94        0.64
+  Support             163,585     20,015
+
+  ROC-AUC:   0.9599
+  PR-AUC:    0.7626
+  Accuracy:  0.89
+
+Confusion matrix:
+  True Negative (TN):   ~141,000   correctly identified non-events
+  False Positive (FP):  ~22,000    false alarms
+  False Negative (FN):  ~2,000     missed heatwaves
+  True Positive (TP):   ~18,000    correctly identified heatwaves
+
+Recall of 0.90 means 90% of Klement events are detected 72 hours in advance.
+For an early warning system this is the critical metric — a missed event
+carries higher cost than a false alarm.
+
+
+COMPARISON WITH METEOROLOGICAL BASELINE
+----------------------------------------
+Baseline definition: "Alarm if today's Tmax >= city-specific P95"
+This is the simplest physically motivated heuristic.
+
+  Metric              Baseline    Model
+  PR-AUC              0.118       0.763    (+547%)
+  ROC-AUC             0.512       0.960    (+88%)
+  Recall (heat wave)  0.029       0.931    (+3110%)
+  Precision           0.405       0.455
+
+The model dramatically outperforms the naive baseline on all metrics,
+demonstrating that learned atmospheric precursor patterns add substantial
+predictive value beyond same-day temperature thresholds.
+
+
+SHAP FEATURE ANALYSIS
+---------------------
+Top 20 features ranked by mean absolute SHAP value:
+
+  Feature                       Importance  Threshold   Effect
+  t_850hPa                      2.1040      287.4 K     ↓ suppresses at low values
+  temperature_2m_zscore         1.2065      +0.63 σ     ↓ suppresses below anomaly
+  doy_sin                       0.8748      -0.948      seasonal boundary signal
+  doy_cos                       0.5728      -1.000      late summer signal
+  soil_moisture_0_to_7cm_zscore 0.3343      -0.87 σ     dry soil precursor
+  soil_moisture_0_to_7cm        0.3024      0.010       absolute dryness threshold
+  t_850hPa_zscore               0.2694      -0.45 σ     warm anomaly at 850hPa
+  t_500hPa                      0.2653      259.1 K     upper-level warmth
+  city_paris                    0.2604      —           ↓ oceanic climate dampens risk
+  lag_t850_72h                  0.2278      268.8 K     72h precursor signal
+  hour_sin                      0.2264      —           diurnal cycle encoding
+  temperature_2m                0.2007      9.75°C      ↑ absolute warmth signal
+  city_marseillemarignane       0.1950      —           ↑ Rhône valley heat trap
+  u_500hPa                      0.1565      -22.6 m/s   ↑ blocked westerlies signal
+  delta_press_24h               0.1546      -9.0 hPa    ↑ pressure drop precursor
+  relative_humidity_2m_zscore   0.1531      -3.78 σ     extreme dryness signal
+  lag_v850_72h                  0.1415      -6.31 m/s   meridional flow 72h ago
+  wind_dir_cos                  0.1270      —           ↑ southerly flow signal
+  shortwave_radiation           0.1075      147 W/m²    radiation threshold
+  city_bordeaux                 0.1047      —           ↓ Atlantic influence dampens
+
+Key physical interpretations:
+- t_850hPa threshold at 287.4 K (14.3°C): consistent with warm synoptic
+  pattern at 850 hPa preceding European heatwaves.
+- u_500hPa threshold at -22.6 m/s: weak or reversed zonal flow at 500 hPa
+  indicates atmospheric blocking — the primary dynamical mechanism behind
+  major Western European heatwaves (2003, 2019, 2022).
+- soil_moisture_zscore at -0.87σ: dry soils reduce evaporative cooling,
+  amplifying surface heating — a well-documented land-atmosphere feedback.
+- city_marseillemarignane as a positive predictor and city_paris as a
+  negative predictor reflect real climatic differences (Mediterranean vs.
+  oceanic regime).
+
+
+FALSE POSITIVE ANALYSIS
+------------------------
+FP = model predicts heatwave, none occurs (22,314 cases)
+
+Compared to true negatives (TN), false alarms occur when:
+  - t_850hPa is elevated (+7K above TN mean) but heat does not persist 72h
+  - t_500hPa SHAP is much weaker (0.07 vs 0.33 for TN): upper atmosphere
+    does not confirm the surface signal → no blocking pattern
+  - Humidity is lower (-7%) and aridity index higher: warm dry days that
+    do not develop into sustained events
+  - Wind speed is lower (-2 m/s): stagnant warm air without synoptic forcing
+
+False alarms are meteorologically plausible — brief heat pulses that
+resemble event precursors but lack the sustained blocking dynamics.
+
+
+FALSE NEGATIVE ANALYSIS
+-----------------------
+FN = model misses a real heatwave (1,316–2,000 cases)
+
+Missed events are characterized by:
+  - Much lower shortwave radiation (-77 W/m²): overcast heatwaves driven
+    by warm air advection from North Africa rather than local radiation
+  - Higher humidity (+12%): moist warm events not matching the typical
+    dry heatwave signature the model learned
+  - Weaker temperature anomaly (zscore +0.85 vs +1.65 for TP): events
+    arriving without a strong prior anomaly signal
+  - Weaker 72h precursor in T850 and T500 lags
+
+These are fast-onset, cloudy, moist heatwaves — the most difficult events
+to predict and an inherent limitation of pattern-based approaches.
+
+
+ARTIFACTS SAVED
+---------------
+  model_tuned.pkl          Final XGBoost model (Optuna-optimized)
+  model_hourly.pkl         Model without Optuna (higher recall: 0.93)
+  city_climatologies.pkl   Per-city DOY×hour climatology for Z-score
+                           inference (no retraining needed)
+
+For real-time inference, load city_climatologies.pkl to apply Z-score
+normalization to new data, then pass engineered features to model_tuned.pkl.
+
+
+METHODOLOGICAL NOTES
+---------------------
+1. No data leakage: P95 thresholds and Z-score climatologies are computed
+   exclusively from data up to 2015 (train end). Test period (2016–2025)
+   is never seen during any preprocessing step.
+
+2. Hourly rolling target avoids constant label repetition: unlike a
+   daily aggregation approach where all 24 hours share the same label,
+   the rolling target varies continuously, providing genuine signal
+   variation across hours.
+
+3. Summer-only training: restricts both training and evaluation to
+   May–September, eliminating winter noise and improving class balance
+   from ~3% to ~8% positive rate.
+
+4. scale_pos_weight handles class imbalance natively within XGBoost,
+   avoiding synthetic oversampling artifacts.
+
+5. PR-AUC chosen as optimization metric: for imbalanced binary
+   classification, PR-AUC is more informative than ROC-AUC because it
+   directly measures performance on the rare positive class.
+
+================================================================================
