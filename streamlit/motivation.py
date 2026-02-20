@@ -185,7 +185,7 @@ def show_page():
 
     st.markdown(
         f'''
-        <a href="https://www.data.gouv.fr/datasets/donnees-climatologiques-de-base-quotidiennes-stations-complementaires?utm_source=chatgpt.com" target="_blank">
+        <a href="https://www.data.gouv.fr/datasets/donnees-climatologiques-de-base-quotidiennej" target="_blank">
             <img src="data:image/jpeg;base64,{img_base64}" width="200">
         </a>
         ''',

@@ -28,7 +28,7 @@ def show_page():
 
     st.markdown(
         f'''
-        <a href="https://www.data.gouv.fr/datasets/donnees-climatologiques-de-base-quotidiennes-stations-complementaires?utm_source=chatgpt.com" target="_blank">
+        <a href="https://www.data.gouv.fr/datasets/donnees-climatologiques-de-base-quotidiennes" target="_blank">
             <img src="data:image/jpeg;base64,{img_base64}" width="200">
         </a>
         ''',
@@ -103,10 +103,10 @@ def show_page():
     else:
         quantile_value = st.sidebar.slider(
             "Quantile",
-            min_value=0.85,
+            min_value=0.80,
             max_value=1.0,
             value=0.95,
-            step=0.05
+            step=0.01
         )
 
     # Number of cumulative days
@@ -183,7 +183,11 @@ def show_page():
         df["month"] = df["date"].dt.month
 
         # Apply threshold
-        df["hot_day"] = df["TX"] >= TX_THRESHOLD
+        if filter_method == "Threshold":
+            df["hot_day"] = df["TX"] >= TX_THRESHOLD
+        else:
+            quant_threshold = df["TX"].quantile(quantile_value)
+            df["hot_day"] = df["TX"] >= quant_threshold
 
         # Consecutive hot day counter
         df["hot_spell_len"] = (
@@ -247,9 +251,9 @@ def show_page():
         st.divider()
 
         # ======================================================
-        # 7. TX Distribution & Availability
+        # 7. TX Distribution
         # ======================================================
-        st.subheader("TX Distribution & Availability")
+        st.subheader("TX Distribution")
 
         features = [
             "wind_mean_10m_ms",
@@ -265,30 +269,35 @@ def show_page():
         X = df_ml[features]
         y = df_ml[target]
 
-        fig2, axes2 = plt.subplots(1, 2, figsize=(14, 4))
+        fig2, ax2 = plt.subplots(figsize=(10, 6))
 
-        # TX Distribution
-        axes2[0].hist(df_ml["TX"], bins=30)
-        axes2[0].set_xlabel("Daily maximum temperature (TX)")
-        axes2[0].set_ylabel("Number of days")
-        axes2[0].set_title(f"{city_label}: Distribution of Summer TX")
+        # Histogram with edge color for better bar separation
+        ax2.hist(df_ml["TX"], bins=30, edgecolor="white", linewidth=0.5)
 
-        # TX Availability per year
-        df_summer_copy = df_summer.copy()
-        df_summer_copy["year"] = df_summer_copy["date"].dt.year
-        tx_count_per_year = df_summer_copy["TX"].notna().groupby(df_summer_copy["year"]).sum()
+        # Mean and median lines
+        mean_tx = df_ml["TX"].mean()
+        median_tx = df_ml["TX"].median()
+        ax2.axvline(mean_tx, color="red", linestyle="--", linewidth=1.5, label=f"Mean: {mean_tx:.1f}°C")
+        ax2.axvline(median_tx, color="orange", linestyle=":", linewidth=1.5, label=f"Median: {median_tx:.1f}°C")
 
-        axes2[1].plot(tx_count_per_year.index, tx_count_per_year.values, marker="o")
-        axes2[1].set_xlabel("Year")
-        axes2[1].set_ylabel("Number of summer days with TX")
-        axes2[1].set_title(f"{city_label}: Availability of TX over Time (Summer)")
+        # Labels and title
+        ax2.set_xlabel("Daily Maximum Temperature TX (°C)", fontsize=12)
+        ax2.set_ylabel("Number of Days", fontsize=12)
+        ax2.set_title(f"{city_label}: Distribution of Summer TX", fontsize=14, fontweight="bold", pad=15)
+
+        # Grid and styling
+        ax2.yaxis.grid(True, linestyle="--", alpha=0.7)
+        ax2.set_axisbelow(True)
+        ax2.spines["top"].set_visible(False)
+        ax2.spines["right"].set_visible(False)
+
+        ax2.legend(fontsize=10)
 
         plt.tight_layout()
         st.pyplot(fig2)
         plt.close()
 
         st.divider()
-        anzahl_stationen = df_summer_copy["NUM_POSTE"].nunique()
 
         # ======================================================
         # 8. ML Data Preview
@@ -331,23 +340,23 @@ def show_page():
         with col3:
             st.write(f"Selected City: {CITY}")
 
-        st.divider()
+        # st.divider()
 
         # Model Parameters in main window with frame/box
-        st.subheader("Model Parameters")
+        # st.subheader("Model Parameters")
 
-        with st.container(border=True):
-            col1, col2 = st.columns(2)
+        # with st.container(border=True):
+        #     col1, col2 = st.columns(2)
             
-            with col1:
-                n_estimators = st.number_input("n_estimators", 50, 500, 100, 10)
-                max_depth = st.number_input("max_depth", 1, 10, 3, 1)
-                test_size = st.number_input("test size", 0.1, 0.4, 0.3, 0.01)
-            with col2:
-                min_samples_split = st.slider("min_samples_split", 10, 100, 20, 1)
-                min_samples_leaf = st.slider("min_samples_leaf", 10, 100, 20, 1)
-                subsample = st.slider("subsample", 0.5, 1.0, 1.0, 0.1)
-                learning_rate = st.slider("learning_rate", 0.01, 0.3, 0.1, 0.01)
+        #     with col1:
+        #         n_estimators = st.number_input("n_estimators", 50, 5000, 100, 10)
+        #         max_depth = st.number_input("max_depth", 1, 10, 3, 1)
+        #         test_size = st.number_input("test size", 0.1, 0.4, 0.3, 0.01)
+        #     with col2:
+        #         min_samples_split = st.slider("min_samples_split", 10, 100, 20, 1)
+        #         min_samples_leaf = st.slider("min_samples_leaf", 10, 100, 20, 1)
+        #         subsample = st.slider("subsample", 0.5, 1.0, 1.0, 0.1)
+        #         learning_rate = st.slider("learning_rate", 0.01, 0.3, 0.1, 0.01)
 
         st.divider()
 
@@ -360,17 +369,17 @@ def show_page():
                     try:
                         X_train, X_test, y_train, y_test = train_test_split(
                             X, y,
-                            test_size=test_size,
+                            test_size=0.2,
                             random_state=42
                         )
                         
                         model = GradientBoostingRegressor(
-                            n_estimators=n_estimators,
-                            learning_rate=learning_rate,
-                            max_depth=max_depth,
-                            min_samples_split=min_samples_split,
-                            min_samples_leaf=min_samples_leaf,
-                            subsample=subsample,
+                            n_estimators=1000,
+                            learning_rate=0.04,
+                            max_depth=3,
+                            min_samples_split=30,
+                            min_samples_leaf=15,
+                            subsample=0.8,
                             random_state=42
                         )
                         
