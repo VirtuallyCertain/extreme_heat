@@ -16,7 +16,7 @@ import os
 from scipy import stats
 
 PAGE_TITLE = "Data Explanation & First Model"
-BASE_DIR = "../"
+BASE_DIR = ""
 
 def show_page():
 
@@ -374,12 +374,12 @@ def show_page():
                         )
                         
                         model = GradientBoostingRegressor(
-                            n_estimators=1000,
-                            learning_rate=0.04,
-                            max_depth=3,
-                            min_samples_split=30,
-                            min_samples_leaf=15,
-                            subsample=0.8,
+                            n_estimators=1063,
+                            learning_rate=0.012027,
+                            max_depth=6,
+                            min_samples_split=38,
+                            min_samples_leaf=26,
+                            subsample=0.82253,
                             random_state=42
                         )
                         
