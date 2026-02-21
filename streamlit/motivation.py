@@ -11,7 +11,7 @@ import streamlit as st
 # ]
 
 # For streamlit we need to change the "start" of the directory to the repo root
-BASE_DIR = ""
+BASE_DIR = "../"
 CITY_FILES = [
     f"{BASE_DIR}data/0_initial/Paris_Q_75_previous-1950-2024_RR-T-Vent.zip",
     f"{BASE_DIR}data/0_initial/Marseille_Q_13_previous-1950-2024_RR-T-Vent.zip",
@@ -121,11 +121,11 @@ def show_temperature_figure():
         
         col1, col2 = st.columns(2)
         with col1:
-            st.image(f"{BASE_DIR}figures/1_figs/{cities[0]}_daily.png", width='content')
-            st.image(f"{BASE_DIR}figures/1_figs/{cities[0]}_summer_mean.png", width='content')
-            st.image(f"{BASE_DIR}figures/1_figs/{cities[0]}_annual_mean_trend.png", width='content')
-        with col2:
             st.image(f"{BASE_DIR}figures/1_figs/{cities[0]}_annual_mean.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[0]}_daily.png", width='content')
+        with col2:
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[0]}_annual_mean_trend.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[0]}_summer_mean.png", width='content')
             st.image(f"{BASE_DIR}figures/1_figs/{cities[0]}_daily_30drolling.png", width='content')
     
     # Marseille
@@ -134,11 +134,11 @@ def show_temperature_figure():
         
         col1, col2 = st.columns(2)
         with col1:
-            st.image(f"{BASE_DIR}figures/1_figs/{cities[1]}_daily.png", width='content')
-            st.image(f"{BASE_DIR}figures/1_figs/{cities[1]}_summer_mean.png", width='content')
-            st.image(f"{BASE_DIR}figures/1_figs/{cities[1]}_annual_mean_trend.png", width='content')
-        with col2:
             st.image(f"{BASE_DIR}figures/1_figs/{cities[1]}_annual_mean.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[1]}_daily.png", width='content')
+        with col2:
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[1]}_annual_mean_trend.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[1]}_summer_mean.png", width='content')
             st.image(f"{BASE_DIR}figures/1_figs/{cities[1]}_daily_30drolling.png", width='content')
     
     # Lyon
@@ -147,11 +147,11 @@ def show_temperature_figure():
         
         col1, col2 = st.columns(2)
         with col1:
-            st.image(f"{BASE_DIR}figures/1_figs/{cities[2]}_daily.png", width='content')
-            st.image(f"{BASE_DIR}figures/1_figs/{cities[2]}_summer_mean.png", width='content')
-            st.image(f"{BASE_DIR}figures/1_figs/{cities[2]}_annual_mean_trend.png", width='content')
-        with col2:
             st.image(f"{BASE_DIR}figures/1_figs/{cities[2]}_annual_mean.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[2]}_daily.png", width='content')
+        with col2:
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[2]}_annual_mean_trend.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[2]}_summer_mean.png", width='content')
             st.image(f"{BASE_DIR}figures/1_figs/{cities[2]}_daily_30drolling.png", width='content')
     
     # Bordeaux
@@ -160,11 +160,11 @@ def show_temperature_figure():
         
         col1, col2 = st.columns(2)
         with col1:
-            st.image(f"{BASE_DIR}figures/1_figs/{cities[3]}_daily.png", width='content')
-            st.image(f"{BASE_DIR}figures/1_figs/{cities[3]}_summer_mean.png", width='content')
-            st.image(f"{BASE_DIR}figures/1_figs/{cities[3]}_annual_mean_trend.png", width='content')
-        with col2:
             st.image(f"{BASE_DIR}figures/1_figs/{cities[3]}_annual_mean.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[3]}_daily.png", width='content')
+        with col2:
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[3]}_annual_mean_trend.png", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/{cities[3]}_summer_mean.png", width='content')
             st.image(f"{BASE_DIR}figures/1_figs/{cities[3]}_daily_30drolling.png", width='content')
     
     # All Cities
