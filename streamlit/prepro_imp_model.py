@@ -727,7 +727,27 @@ def show_page():
                 # --- Model Training ---
                 st.divider()
                 st.subheader("🤖 Model Training")
-                if st.button("🚀 Start Training"):
+
+                MODELS_DIR = Path(f"{BASE_DIR}models/")
+                model_path = MODELS_DIR / "model_hourly.pkl"
+                clim_path  = MODELS_DIR / "city_climatologies.pkl"
+                pretrained_available = model_path.exists() and clim_path.exists()
+
+                btn_col1, btn_col2 = st.columns(2)
+
+                with btn_col1:
+                    train_clicked = st.button("🚀 Start Training", use_container_width=True)
+
+                with btn_col2:
+                    load_clicked = st.button(
+                        "📂 Use Pre-trained Model",
+                        use_container_width=True,
+                        disabled=not pretrained_available,
+                        help="Loads existing model from /models folder." if pretrained_available
+                             else "No pre-trained model found in /models folder."
+                    )
+
+                if train_clicked:
                     with st.spinner("Training in progress... this may take a moment."):
                         model, feature_cols, X_test, y_test, city_thresholds = run_training_pipeline(
                             all_frames, city_climatologies
@@ -738,6 +758,48 @@ def show_page():
                         st.session_state['y_test']            = y_test
                         st.session_state['city_thresholds']   = city_thresholds
                         st.session_state['engineered_frames'] = all_frames
+
+                if load_clicked:
+                    with st.spinner("Loading pre-trained model..."):
+                        try:
+                            model          = joblib.load(model_path)
+                            city_clim_load = joblib.load(clim_path)
+
+                            # Rebuild X_test / y_test from current data
+                            city_targets    = {}
+                            city_thresholds = {}
+                            for city, df in all_frames.items():
+                                target, thresh        = label_heatwave_hourly(df, city)
+                                city_targets[city]    = target
+                                city_thresholds[city] = thresh
+
+                            hourly_frames = {}
+                            for city, df in all_frames.items():
+                                df         = df.copy()
+                                df['y']    = city_targets[city]
+                                df['city'] = city
+                                df         = df[df.index.month.isin(SUMMER_MONTHS)]
+                                df         = df.dropna()
+                                hourly_frames[city] = df
+
+                            full_df      = pd.concat(hourly_frames.values()).sort_index()
+                            full_df      = full_df[~full_df.index.duplicated(keep='first')]
+                            full_df      = pd.get_dummies(full_df, columns=['city'], prefix='city')
+                            test         = full_df[full_df.index > SPLIT_DATE]
+                            feature_cols = [c for c in full_df.columns if c != 'y']
+                            X_test       = test[feature_cols]
+                            y_test       = test['y']
+
+                            st.session_state['model']             = model
+                            st.session_state['feature_cols']      = feature_cols
+                            st.session_state['X_test']            = X_test
+                            st.session_state['y_test']            = y_test
+                            st.session_state['city_thresholds']   = city_thresholds
+                            st.session_state['engineered_frames'] = all_frames
+
+                            st.success("✅ Pre-trained model loaded successfully!")
+                        except Exception as e:
+                            st.error(f"❌ Failed to load model: {e}")
 
                 # --- Evaluation ---
                 if 'model' in st.session_state:
