@@ -25,7 +25,7 @@ import seaborn as sns
 from concurrent.futures import ThreadPoolExecutor
 
 
-BASE_DIR = ""
+BASE_DIR = "../"
 
 # ============================================================
 # CONSTANTS
@@ -615,31 +615,47 @@ def show_page():
     # TAB 1 – Data Overview & Explanation
     # =========================================================================
     with tab1:
-        st.header("📖 About the Data")
+        st.header("📖 Data Explanation & Analysis")
 
+        # --- Pre-Heatwave Signal ---
+        st.subheader("🌡️ Pre-Heatwave Signal")
         img_col1, img_col2 = st.columns(2)
         with img_col1:
-            st.image(
-                "https://placehold.co/600x400?text=Temperature+Time+Series",
-                caption="Example: Temperature Time Series (ERA5)",
-                width='content'
-            )
-            st.image(
-                "https://placehold.co/600x400?text=Heatwave+Event+Distribution",
-                caption="Heatwave Event Distribution by Month",
-                width='content'
-            )
+            st.image(f"{BASE_DIR}figures/4_figs/Pre-Heatwave_Signal_Lyon.png", use_container_width=True)
         with img_col2:
-            st.image(
-                "https://placehold.co/600x400?text=Feature+Correlation+Matrix",
-                caption="Feature Correlation Matrix",
-                width='content'
-            )
-            st.image(
-                "https://placehold.co/600x400?text=Class+Imbalance+Overview",
-                caption="Class Imbalance: Heatwave vs. Normal Hours",
-                width='content'
-            )
+            st.image(f"{BASE_DIR}figures/4_figs/Pre-Heatwave_Signal_Bordeaux.png", use_container_width=True)
+
+        # --- Spearman Correlation ---
+        st.subheader("📊 Spearman Correlation")
+        img_col3, img_col4 = st.columns(2)
+        with img_col3:
+            st.image(f"{BASE_DIR}figures/4_figs/Spearman_Lyon.png", use_container_width=True)
+        with img_col4:
+            st.image(f"{BASE_DIR}figures/4_figs/Spearman_Bordeaux.png", use_container_width=True)
+
+        # --- Feature Table ---
+        st.subheader("🔍 Feature Overview")
+        feature_data = {
+            "Feature": [
+                "Z-Score",
+                "hour_sin / hour_cos",
+                "doy_sin / doy_cos",
+                "Heat Aridity Index ⭐",
+                "lag_t850_72h / lag_t500_72h ⭐",
+                "delta_press_24h / delta_hum_24h ⭐",
+                "v850_smooth_6h",
+            ],
+            "Description": [
+                "Anomaly relative to climatology",
+                "Cyclic time of day",
+                "Cyclic day of the year",
+                "Hot and dry air coupled with lack of evaporative cooling",
+                "Heat bubbles build up in the upper atmosphere before reaching the surface.",
+                "It is not the absolute state that matters, but the rate of change.",
+                "Smoothed wind component 850hPa",
+            ],
+        }
+        st.table(feature_data)
 
     # =========================================================================
     # TAB 2 – Training & Evaluation
@@ -820,24 +836,6 @@ def show_page():
 
         img_col3, img_col4 = st.columns(2)
         with img_col3:
-            st.image(
-                "https://placehold.co/600x400?text=Temperature+Time+Series",
-                caption="Example: Temperature Time Series (ERA5)",
-                width='content'
-            )
-            st.image(
-                "https://placehold.co/600x400?text=Heatwave+Event+Distribution",
-                caption="Heatwave Event Distribution by Month",
-                width='content'
-            )
+            st.image(f"{BASE_DIR}figures/4_figs/SHAP_false_positive.png", width='content')
         with img_col4:
-            st.image(
-                "https://placehold.co/600x400?text=Feature+Correlation+Matrix",
-                caption="Feature Correlation Matrix",
-                width='content'
-            )
-            st.image(
-                "https://placehold.co/600x400?text=Class+Imbalance+Overview",
-                caption="Class Imbalance: Heatwave vs. Normal Hours",
-                width='content'
-            )
+            st.image(f"{BASE_DIR}figures/4_figs/SHAP_top10_features.png", width='content')
