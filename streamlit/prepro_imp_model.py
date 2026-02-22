@@ -1,3 +1,4 @@
+from pathlib import Path
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -23,6 +24,8 @@ import seaborn as sns
 # Parallelization
 from concurrent.futures import ThreadPoolExecutor
 
+
+BASE_DIR = ""
 
 # ============================================================
 # CONSTANTS
@@ -568,12 +571,42 @@ def show_page():
     # Sidebar: file upload
     with st.sidebar:
         st.markdown("---")
-        st.header("📂 Data Upload")
-        uploaded_files = st.file_uploader(
-            "Upload weather files (.csv or .parquet)",
-            type=["csv", "parquet"],
-            accept_multiple_files=True
+        st.header("📂 Data Source")
+
+        data_source = st.radio(
+            "Select data source:",
+            options=["📤 Upload Files", "📦 Use Example Files"],
+            index=0
         )
+
+        if data_source == "📤 Upload Files":
+            uploaded_files = st.file_uploader(
+                "Upload weather files (.csv or .parquet)",
+                type=["csv", "parquet"],
+                accept_multiple_files=True
+            )
+        else:
+            st.info("Using built-in example files.")
+            # Load example files from a fixed path or package
+            EXAMPLE_DIR = Path(f"{BASE_DIR}data/0_initial/")  # <- Pfad zu deinen Beispieldaten anpassen
+            example_paths = list(EXAMPLE_DIR.glob("*.parquet")) + list(EXAMPLE_DIR.glob("*.csv"))
+
+            if not example_paths:
+                st.warning("⚠️ No example files found in `example_data/` folder.")
+                uploaded_files = []
+            else:
+                st.success(f"✅ {len(example_paths)} example file(s) found:")
+                for p in example_paths:
+                    st.caption(f"• {p.name}")
+
+                # Wrap as UploadedFile-compatible objects using BytesIO
+                uploaded_files = []
+                for path in example_paths:
+                    with open(path, "rb") as f:
+                        buf = io.BytesIO(f.read())
+                        buf.name = path.name   # process_weather_data nutzt .name
+                        uploaded_files.append(buf)
+
 
     # ── TABS ─────────────────────────────────────────────────────────────────
     tab1, tab2, tab3 = st.tabs(["📖 Data Overview", "🤖 Training & Evaluation", "🔍 SHAP Analysis"])
