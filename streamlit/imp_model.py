@@ -1,4 +1,5 @@
 from pathlib import Path
+import base64
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -566,6 +567,21 @@ def show_evaluation(model, engineered_frames: dict, city_thresholds: dict,
 # ============================================================
 
 def show_page():
+    def get_image_base64(image_path):
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+
+    img_base64 = get_image_base64(f"{BASE_DIR}figures/copernicus-logo.svg")
+
+    st.markdown(
+        f'''
+        <a href="https://cds.climate.copernicus.eu" target="_blank">
+            <img src="data:image/svg+xml;base64,{img_base64}" width="250">
+        </a>
+        ''',
+        unsafe_allow_html=True
+    )
+
     st.title("🔧 Improvements & Final Model")
 
     # Sidebar: file upload
