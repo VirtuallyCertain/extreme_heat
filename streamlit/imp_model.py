@@ -25,7 +25,7 @@ import seaborn as sns
 from concurrent.futures import ThreadPoolExecutor
 
 
-BASE_DIR = ""
+BASE_DIR = "../"
 
 # ============================================================
 # CONSTANTS
@@ -621,17 +621,17 @@ def show_page():
         st.subheader("🌡️ Pre-Heatwave Signal")
         img_col1, img_col2 = st.columns(2)
         with img_col1:
-            st.image(f"{BASE_DIR}figures/4_figs/Pre-Heatwave_Signal_Lyon.png", use_container_width=True)
+            st.image(f"{BASE_DIR}figures/4_figs/Pre-Heatwave_Signal_Lyon.png", width='content')
         with img_col2:
-            st.image(f"{BASE_DIR}figures/4_figs/Pre-Heatwave_Signal_Bordeaux.png", use_container_width=True)
+            st.image(f"{BASE_DIR}figures/4_figs/Pre-Heatwave_Signal_Bordeaux.png", width='content')
 
         # --- Spearman Correlation ---
         st.subheader("📊 Spearman Correlation")
         img_col3, img_col4 = st.columns(2)
         with img_col3:
-            st.image(f"{BASE_DIR}figures/4_figs/Spearman_Lyon.png", use_container_width=True)
+            st.image(f"{BASE_DIR}figures/4_figs/Spearman_Lyon.png", width='content')
         with img_col4:
-            st.image(f"{BASE_DIR}figures/4_figs/Spearman_Bordeaux.png", use_container_width=True)
+            st.image(f"{BASE_DIR}figures/4_figs/Spearman_Bordeaux.png", width='content')
 
         # --- Feature Table ---
         st.subheader("🔍 Feature Overview")
@@ -752,12 +752,12 @@ def show_page():
                 btn_col1, btn_col2 = st.columns(2)
 
                 with btn_col1:
-                    train_clicked = st.button("🚀 Start Training", use_container_width=True)
+                    train_clicked = st.button("🚀 Start Training", width='content')
 
                 with btn_col2:
                     load_clicked = st.button(
                         "📂 Use Pre-trained Model",
-                        use_container_width=True,
+                        width='content',
                         disabled=not pretrained_available,
                         help="Loads existing model from /models folder." if pretrained_available
                              else "No pre-trained model found in /models folder."

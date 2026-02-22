@@ -11,7 +11,7 @@ import streamlit as st
 # ]
 
 # For streamlit we need to change the "start" of the directory to the repo root
-BASE_DIR = ""
+BASE_DIR = "../"
 CITY_FILES = [
     f"{BASE_DIR}data/0_initial/Paris_Q_75_previous-1950-2024_RR-T-Vent.zip",
     f"{BASE_DIR}data/0_initial/Marseille_Q_13_previous-1950-2024_RR-T-Vent.zip",
@@ -185,7 +185,7 @@ def show_page():
 
     st.markdown(
         f'''
-        <a href="https://www.data.gouv.fr/datasets/donnees-climatologiques-de-base-quotidiennej" target="_blank">
+        <a href="https://www.data.gouv.fr/datasets/donnees-climatologiques-de-base-quotidiennes" target="_blank">
             <img src="data:image/jpeg;base64,{img_base64}" width="200">
         </a>
         ''',
@@ -290,6 +290,6 @@ def show_page():
     
     if show_raw_data:
         st.subheader("Filtered heatwave data")
-        st.dataframe(filtered_hw, use_container_width=True)
+        st.dataframe(filtered_hw, width='content')
 
 
