@@ -107,7 +107,7 @@ def process_weather_data(uploaded_files: list) -> list:
                 "metadata":       metadata,
             })
 
-            st.success(f"✅ Processed: {filename_base} ({var_count} variables)")
+            # st.success(f"✅ Processed: {filename_base} ({var_count} variables)")
 
         except Exception as e:
             st.error(f"❌ Error in {file_name}: {str(e)}")
@@ -158,7 +158,6 @@ def optimize_dtypes(all_frames: dict) -> dict:
         cols = df.select_dtypes(include=['float64']).columns
         df[cols] = df[cols].astype('float32')
         all_frames[city_id] = df
-    st.success("✅ float64 → float32 conversion complete.")
     return all_frames
 
 
@@ -560,122 +559,6 @@ def show_evaluation(model, engineered_frames: dict, city_thresholds: dict,
 
 
 # ============================================================
-# SHAP ANALYSIS
-# ============================================================
-
-def estimate_threshold(feature: str, shap_vals: np.ndarray,
-                        X: pd.DataFrame) -> float:
-    """
-    Estimates the feature value at which the SHAP contribution changes sign
-    (i.e., where the feature starts increasing the predicted probability).
-    """
-    feat_vals   = X[feature].values
-    col_idx     = X.columns.get_loc(feature)
-    s_vals      = shap_vals[:, col_idx]
-    idx         = np.argsort(feat_vals)
-    feat_sorted = feat_vals[idx]
-    shap_sorted = s_vals[idx]
-    sign_changes = np.where(np.diff(np.sign(shap_sorted)))[0]
-    if len(sign_changes) > 0:
-        return feat_sorted[sign_changes[0]]
-    return np.nan
-
-
-def show_shap_analysis(model, X_test: pd.DataFrame,
-                        y_test: pd.Series, y_pred: np.ndarray) -> None:
-    """
-    Displays SHAP-based model interpretation:
-    - Feature importance summary plot
-    - Top 20 features table with direction, threshold, mean and std
-    - False Positive analysis: FP vs TN feature differences
-    """
-    st.write("### 🔍 SHAP Analysis – Model Interpretation")
-
-    # Use a sample for performance if X_test is large
-    X_sample = X_test.head(1000) if len(X_test) > 1000 else X_test
-
-    with st.spinner("Calculating SHAP values... this may take a moment."):
-        explainer   = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(X_sample)
-
-    # SHAP Summary Plot
-    st.write("**Feature Importance (SHAP Summary)**")
-    fig, _ = plt.subplots()
-    shap.summary_plot(shap_values, X_sample, max_display=15, show=False)
-    plt.tight_layout()
-    st.pyplot(fig)
-    plt.close(fig)
-
-    # Top 20 SHAP feature table
-    st.write("**Detailed SHAP Analysis: Top 20 Features**")
-    shap_importance = pd.Series(
-        np.abs(shap_values).mean(axis=0), index=X_sample.columns
-    ).sort_values(ascending=False)
-    shap_mean = pd.Series(shap_values.mean(axis=0), index=X_sample.columns)
-
-    rows = []
-    for feat in shap_importance.head(20).index:
-        thresh = estimate_threshold(feat, shap_values, X_sample)
-        rows.append({
-            'Feature':          feat,
-            'Importance (abs)': round(float(shap_importance[feat]), 4),
-            'Direction (mean)': round(float(shap_mean[feat]), 4),
-            'Effect':           '🔥 ↑ Heat Event' if shap_mean[feat] > 0 else '❄️ ↓ No Event',
-            'Threshold':        round(float(thresh), 3) if not np.isnan(thresh) else 'N/A',
-            'Mean Value':       round(float(X_sample[feat].mean()), 3),
-            'Std Value':        round(float(X_sample[feat].std()), 3),
-        })
-
-    st.dataframe(pd.DataFrame(rows), width='content')
-
-    # False Positive analysis
-    st.divider()
-    st.write("**Why False Positives? – FP vs TN Feature Comparison**")
-
-    fp_mask = (y_test.values == 0) & (y_pred == 1)
-    tn_mask = (y_test.values == 0) & (y_pred == 0)
-
-    col1, col2 = st.columns(2)
-    col1.metric("False Positives (FP)", int(fp_mask.sum()))
-    col2.metric("True Negatives (TN)",  int(tn_mask.sum()))
-
-    if fp_mask.any():
-        # Align masks with X_sample index
-        fp_idx  = X_sample.index[fp_mask[:len(X_sample)]]
-        tn_idx  = X_sample.index[tn_mask[:len(X_sample)]]
-        X_fp    = X_sample.loc[X_sample.index.intersection(fp_idx)]
-        X_tn    = X_sample.loc[X_sample.index.intersection(tn_idx)]
-
-        shap_fp = shap_values[X_sample.index.isin(fp_idx)]
-        shap_tn = shap_values[X_sample.index.isin(tn_idx)]
-
-        if len(X_fp) == 0 or shap_fp.shape[0] == 0:
-            st.info("ℹ️ No False Positives found within the SHAP sample window.")
-        else:
-            feature_diff = pd.DataFrame({
-                'Mean FP':    X_fp.mean(),
-                'Mean TN':    X_tn.mean(),
-                'Difference': X_fp.mean() - X_tn.mean(),
-                'SHAP FP':    np.abs(shap_fp).mean(axis=0),
-                'SHAP TN':    np.abs(shap_tn).mean(axis=0),
-            }).sort_values('Difference', key=abs, ascending=False)
-
-            st.write("**Top 15 Feature Differences: FP vs TN**")
-            st.dataframe(feature_diff.head(15).round(3), width='content')
-
-            # SHAP Summary for False Positives
-            st.write("**SHAP Summary – False Positives**")
-            fig, _ = plt.subplots()
-            shap.summary_plot(shap_fp, X_fp, max_display=15, show=False)
-            plt.title("SHAP – False Positives (false alarms)")
-            plt.tight_layout()
-            st.pyplot(fig)
-            plt.close(fig)
-    else:
-        st.success("No False Positives found in the test set!")
-
-
-# ============================================================
 # MAIN PAGE
 # ============================================================
 
@@ -692,121 +575,174 @@ def show_page():
             accept_multiple_files=True
         )
 
-    if not uploaded_files:
-        st.info("👈 Please upload one or more weather files in the sidebar to get started.")
-        return
+    # ── TABS ─────────────────────────────────────────────────────────────────
+    tab1, tab2, tab3 = st.tabs(["📖 Data Overview", "🤖 Training & Evaluation", "🔍 SHAP Analysis"])
 
-    # ── Step 1: Load & standardize raw files ─────────────────────────────────
-    results = process_weather_data(uploaded_files)
-    if not results:
-        return
+    # =========================================================================
+    # TAB 1 – Data Overview & Explanation
+    # =========================================================================
+    with tab1:
+        st.header("📖 About the Data")
 
-    # ── Step 2: Aggregate into city DataFrames ────────────────────────────────
-    st.divider()
-    st.subheader("📊 Data Aggregation")
-
-    all_frames       = {}
-    unique_variables = set()
-
-    for r in results:
-        df      = pd.read_parquet(r["parquet_buffer"])
-        city_id = r["metadata"]["city"]
-        all_frames[city_id] = df
-        for v in r["metadata"]["variables"]["list"]:
-            unique_variables.add(v)
-
-    # Statistical overview
-    summary_list = []
-    for loc, df in all_frames.items():
-        loc_stats = {"City": loc.upper()}
-        for var in df.columns:
-            if var != 'timestamp':
-                loc_stats[f"{var} (Mean)"] = round(df[var].mean(), 3)
-                loc_stats[f"{var} (Max)"]  = round(df[var].max(), 3)
-        summary_list.append(loc_stats)
-
-    st.write("### Statistical Overview (Cleaned Data)")
-    st.dataframe(pd.DataFrame(summary_list), width='content')
-
-    # ── Step 3: Wind direction transformation ─────────────────────────────────
-    st.divider()
-    st.subheader("🌬️ Feature Engineering: Wind Direction")
-    all_frames = transform_wind_direction(all_frames)
-    show_validation_check(all_frames)
-
-    # ── Step 4: Data type optimization ───────────────────────────────────────
-    st.divider()
-    st.subheader("⚙️ Data Type Optimization")
-    all_frames = optimize_dtypes(all_frames)
-
-    # ── Step 5: Feature engineering ──────────────────────────────────────────
-    st.divider()
-    st.subheader("🧪 Feature Engineering")
-    with st.spinner("Running feature engineering for all cities..."):
-        all_frames, city_climatologies = run_feature_engineering(all_frames)
-
-    example_city   = list(all_frames.keys())[0]
-    total_vars     = len(all_frames[example_city].columns)
-    new_vars_count = len([
-        c for c in all_frames[example_city].columns
-        if any(x in c for x in ['lag', 'delta', 'aridity', 'smooth', 'zscore', 'sin', 'cos'])
-    ])
-    st.success("✅ Feature Engineering complete!")
-    st.info(
-        f"**Status:** {len(all_frames)} cities processed – "
-        f"**{total_vars} total variables** ({new_vars_count} newly engineered features)."
-    )
-
-    # ── Step 6: Download preprocessed data ───────────────────────────────────
-    st.divider()
-    st.subheader("📦 Download Preprocessed Data")
-    zip_buffer = io.BytesIO()
-    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
-        for r in results:
-            zf.writestr(f"{r['filename_base']}.parquet", r["parquet_buffer"].getvalue())
-            zf.writestr(f"{r['filename_base']}.json",    r["json_bytes"])
-    zip_buffer.seek(0)
-
-    st.download_button(
-        label="⬇️ Download all processed files (.zip)",
-        data=zip_buffer,
-        file_name="preprocessed_weather_data.zip",
-        mime="application/zip"
-    )
-
-    # ── Step 7: Model training ────────────────────────────────────────────────
-    st.divider()
-    st.subheader("🤖 Model Training")
-    if st.button("🚀 Start Training"):
-        with st.spinner("Training in progress... this may take a moment."):
-            model, feature_cols, X_test, y_test, city_thresholds = run_training_pipeline(
-                all_frames, city_climatologies
+        img_col1, img_col2 = st.columns(2)
+        with img_col1:
+            st.image(
+                "https://placehold.co/600x400?text=Temperature+Time+Series",
+                caption="Example: Temperature Time Series (ERA5)",
+                width='content'
             )
-            st.session_state['model']           = model
-            st.session_state['feature_cols']    = feature_cols
-            st.session_state['X_test']          = X_test
-            st.session_state['y_test']          = y_test
-            st.session_state['city_thresholds'] = city_thresholds
-            st.session_state['engineered_frames'] = all_frames
+            st.image(
+                "https://placehold.co/600x400?text=Heatwave+Event+Distribution",
+                caption="Heatwave Event Distribution by Month",
+                width='content'
+            )
+        with img_col2:
+            st.image(
+                "https://placehold.co/600x400?text=Feature+Correlation+Matrix",
+                caption="Feature Correlation Matrix",
+                width='content'
+            )
+            st.image(
+                "https://placehold.co/600x400?text=Class+Imbalance+Overview",
+                caption="Class Imbalance: Heatwave vs. Normal Hours",
+                width='content'
+            )
 
-    # ── Step 8: Evaluation ────────────────────────────────────────────────────
-    if 'model' in st.session_state:
-        st.divider()
-        show_evaluation(
-            model             = st.session_state['model'],
-            engineered_frames = st.session_state['engineered_frames'],
-            city_thresholds   = st.session_state['city_thresholds'],
-            X_test            = st.session_state['X_test'],
-            y_test            = st.session_state['y_test']
-        )
+    # =========================================================================
+    # TAB 2 – Training & Evaluation
+    # =========================================================================
+    with tab2:
+        if not uploaded_files:
+            st.info("👈 Please upload one or more weather files in the sidebar to get started.")
+        else:
+            # --- Central Preprocessing UI ---
+            st.subheader("⚙️ Data Pipeline")
+            progress_bar = st.progress(0)
+            status_text  = st.empty()
 
-        # ── Step 9: SHAP Analysis ─────────────────────────────────────────────
-        st.divider()
-        y_proba = st.session_state['model'].predict_proba(st.session_state['X_test'])[:, 1]
-        y_pred  = (y_proba >= 0.5).astype(int)
-        show_shap_analysis(
-            model  = st.session_state['model'],
-            X_test = st.session_state['X_test'],
-            y_test = st.session_state['y_test'],
-            y_pred = y_pred
-        )
+            # 1. Load & Standardize
+            status_text.info("⏳ Loading and standardizing raw files...")
+            results = process_weather_data(uploaded_files)
+            progress_bar.progress(20)
+
+            if not results:
+                status_text.error("❌ Loading failed.")
+            else:
+                # 2. Aggregate
+                status_text.info("⏳ Aggregating data into city frames...")
+                all_frames = {}
+                for r in results:
+                    df      = pd.read_parquet(r["parquet_buffer"])
+                    city_id = r["metadata"]["city"]
+                    all_frames[city_id] = df
+                progress_bar.progress(40)
+
+                # 3. Wind & Optimization
+                status_text.info("⏳ Transforming wind direction and optimizing memory...")
+                all_frames = transform_wind_direction(all_frames)
+                all_frames = optimize_dtypes(all_frames)
+                progress_bar.progress(60)
+
+                # 4. Feature Engineering
+                status_text.info("⏳ Running complex feature engineering (Z-Scores, Lags, Aridity)...")
+                all_frames, city_climatologies = run_feature_engineering(all_frames)
+                progress_bar.progress(90)
+
+                # 5. Done
+                status_text.success("✅ Preprocessing & Feature Engineering complete!")
+                progress_bar.progress(100)
+
+                # --- Summary Expander ---
+                with st.expander("📊 View Processing Details & Statistics"):
+                    show_validation_check(all_frames)
+
+                    summary_list = []
+                    for loc, df in all_frames.items():
+                        loc_stats = {"City": loc.upper()}
+                        for var in df.columns:
+                            if var in ['temperature_2m', 'relative_humidity_2m', 'precip']:
+                                loc_stats[f"{var} (Mean)"] = round(df[var].mean(), 3)
+                        summary_list.append(loc_stats)
+
+                    st.write("### Statistical Overview")
+                    st.dataframe(pd.DataFrame(summary_list), width='content')
+
+                    example_city = list(all_frames.keys())[0]
+                    total_vars   = len(all_frames[example_city].columns)
+                    st.info(f"**Total Features:** {total_vars} variables are now ready for training.")
+
+                # --- Download Section ---
+                st.divider()
+                col1, col2 = st.columns([2, 1])
+                with col1:
+                    st.write("### 📦 Export Preprocessed Data")
+                    st.write("Download the fully engineered dataset for external use.")
+                with col2:
+                    zip_buffer = io.BytesIO()
+                    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+                        for r in results:
+                            zf.writestr(f"{r['filename_base']}.parquet", r["parquet_buffer"].getvalue())
+                    zip_buffer.seek(0)
+                    st.download_button(
+                        label="⬇️ Download ZIP",
+                        data=zip_buffer,
+                        file_name="preprocessed_data.zip",
+                        mime="application/zip",
+                        width='content'
+                    )
+
+                # --- Model Training ---
+                st.divider()
+                st.subheader("🤖 Model Training")
+                if st.button("🚀 Start Training"):
+                    with st.spinner("Training in progress... this may take a moment."):
+                        model, feature_cols, X_test, y_test, city_thresholds = run_training_pipeline(
+                            all_frames, city_climatologies
+                        )
+                        st.session_state['model']             = model
+                        st.session_state['feature_cols']      = feature_cols
+                        st.session_state['X_test']            = X_test
+                        st.session_state['y_test']            = y_test
+                        st.session_state['city_thresholds']   = city_thresholds
+                        st.session_state['engineered_frames'] = all_frames
+
+                # --- Evaluation ---
+                if 'model' in st.session_state:
+                    st.divider()
+                    show_evaluation(
+                        model             = st.session_state['model'],
+                        engineered_frames = st.session_state['engineered_frames'],
+                        city_thresholds   = st.session_state['city_thresholds'],
+                        X_test            = st.session_state['X_test'],
+                        y_test            = st.session_state['y_test']
+                    )
+
+    # =========================================================================
+    # TAB 3 – SHAP Analysis
+    # =========================================================================
+    with tab3:
+        st.header("🔍 SHAP Analysis")
+
+        img_col3, img_col4 = st.columns(2)
+        with img_col3:
+            st.image(
+                "https://placehold.co/600x400?text=Temperature+Time+Series",
+                caption="Example: Temperature Time Series (ERA5)",
+                width='content'
+            )
+            st.image(
+                "https://placehold.co/600x400?text=Heatwave+Event+Distribution",
+                caption="Heatwave Event Distribution by Month",
+                width='content'
+            )
+        with img_col4:
+            st.image(
+                "https://placehold.co/600x400?text=Feature+Correlation+Matrix",
+                caption="Feature Correlation Matrix",
+                width='content'
+            )
+            st.image(
+                "https://placehold.co/600x400?text=Class+Imbalance+Overview",
+                caption="Class Imbalance: Heatwave vs. Normal Hours",
+                width='content'
+            )
