@@ -35,7 +35,7 @@ grpcio==1.78.0
 h11==0.16.0
 h5netcdf==1.8.1
 h5py==3.15.1
-httptools==0.1.2
+httptools>=0.6.0
 idna==3.11
 ipykernel==7.2.0
 ipython==8.38.0

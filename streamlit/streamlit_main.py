@@ -1,7 +1,7 @@
 import streamlit as st
 import first_model
 import motivation
-# import prepro_imp_model
+import prepro_imp_model
 
 st.set_page_config(page_title="Extreme Temperatures Project", layout="wide")
 
@@ -17,8 +17,7 @@ elif page == "1. Data Explanation & First Model":
     first_model.show_page()
 
 elif page == "2. Improvements & Final Model":
-    st.write("Content goes here...")
-    # prepro_imp_model.show_page()
+    prepro_imp_model.show_page()
 
 elif page == "3. Conclusion & Next Steps":
     st.title("Conclusion & Next Steps")
