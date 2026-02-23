@@ -174,7 +174,6 @@ def show_temperature_figure():
         st.image(f"{BASE_DIR}figures/1_figs/{all_cities}_number_extreme_days.png", width='content')
         st.image(f"{BASE_DIR}figures/1_figs/{all_cities}_annual_share_extreme_days.png", width='content')
 
-
 def show_page():
 
     def get_image_base64(image_path):
@@ -239,57 +238,70 @@ def show_page():
         (heatwaves_df["end_date"] <= end_date) &
         (heatwaves_df["station"].isin(selected_stations))
     ]
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.metric("Total heat events", len(filtered_hw))
-    
-    with col2:
-        st.metric("Stations affected", filtered_hw["station"].nunique())
-    
-    with col3:
+
+    tab1, tab2 = st.tabs(["Heatwave Analysis", "Global Warming"])
+
+    with tab1:
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.metric("Total heat events", len(filtered_hw))
+        
+        with col2:
+            st.metric("Stations affected", filtered_hw["station"].nunique())
+        
+        with col3:
+            if not filtered_hw.empty:
+                st.metric("Avg. duration (days)", f"{filtered_hw['days'].mean():.1f}")
+            else:
+                st.metric("Avg. duration (days)", "–")
+        
+        st.subheader("Heat events per station (all data)")
+        
         if not filtered_hw.empty:
-            st.metric("Avg. duration (days)", f"{filtered_hw['days'].mean():.1f}")
+            station_counts = (
+                filtered_hw
+                .groupby(["station", "lat", "lon"], observed=True)
+                .size()
+                .reset_index(name="count")
+            )
+            station_counts["size"] = station_counts["count"] * 100
+            
+            st.map(station_counts, latitude="lat", longitude="lon", size="size")
+            
         else:
-            st.metric("Avg. duration (days)", "–")
-    
-    st.subheader("Heat events per station (all data)")
-    
-    if not filtered_hw.empty:
-        station_counts = (
-            filtered_hw
-            .groupby(["station", "lat", "lon"], observed=True)
-            .size()
-            .reset_index(name="count")
-        )
-        station_counts["size"] = station_counts["count"] * 100
+            st.info("No heat events found for selected filters.")
         
-        st.map(station_counts, latitude="lat", longitude="lon", size="size")
+        st.subheader("Heat events over time")
         
-    else:
-        st.info("No heat events found for selected filters.")
-    
-    st.subheader("Heat events over time")
-    
-    if not filtered_hw.empty:
-        timeline = (
-            filtered_hw
-            .assign(month=pd.to_datetime(filtered_hw["start_date"]).dt.to_period("M"))
-            .groupby("month")
-            .size()
-            .reset_index(name="count")
-        )
-        timeline["month"] = timeline["month"].dt.to_timestamp()
+        if not filtered_hw.empty:
+            timeline = (
+                filtered_hw
+                .assign(month=pd.to_datetime(filtered_hw["start_date"]).dt.to_period("M"))
+                .groupby("month")
+                .size()
+                .reset_index(name="count")
+            )
+            timeline["month"] = timeline["month"].dt.to_timestamp()
+            
+            st.bar_chart(timeline.set_index("month")["count"])
+        else:
+            st.info("No data to display.")
+
+        show_temperature_figure()
         
-        st.bar_chart(timeline.set_index("month")["count"])
-    else:
-        st.info("No data to display.")
+        if show_raw_data:
+            st.subheader("Filtered heatwave data")
+            st.dataframe(filtered_hw, width='content')
 
-    show_temperature_figure()
-    
-    if show_raw_data:
-        st.subheader("Filtered heatwave data")
-        st.dataframe(filtered_hw, width='content')
+    with tab2:
+        st.header("Global Warming Explanation")
 
-
+        img_col1, img_col2 = st.columns(2)
+        with img_col1:
+            st.image(f"{BASE_DIR}figures/1_figs/Radiation_1.jpg", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/Temp_shift_1.jpg", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/Fossile.jpg", width='content')
+        with img_col2:
+            st.image(f"{BASE_DIR}figures/1_figs/Radiation_2.jpg", width='content')
+            st.image(f"{BASE_DIR}figures/1_figs/Temp_shift_2.jpg", width='content')
