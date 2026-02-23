@@ -16,7 +16,7 @@ import os
 from scipy import stats
 
 PAGE_TITLE = "Data Explanation & First Model"
-BASE_DIR = "../"
+BASE_DIR = ""
 
 def show_page():
 
