@@ -26,7 +26,7 @@ import seaborn as sns
 from concurrent.futures import ThreadPoolExecutor
 
 
-BASE_DIR = ""
+BASE_DIR = "../"
 
 # ============================================================
 # CONSTANTS
@@ -298,6 +298,65 @@ def label_heatwave_hourly(df: pd.DataFrame, city_name: str,
     return y_target, threshold
 
 
+def _build_dataset(engineered_frames: dict,
+                   feature_cols: list = None) -> tuple:
+    """
+    Shared helper: builds the full feature matrix from engineered frames,
+    computes heatwave labels, applies summer filter + dropna, deduplicates
+    the index, one-hot-encodes city, and splits into train/test.
+
+    If feature_cols is provided (e.g. loaded from a pre-trained model),
+    the test set is aligned to exactly those columns (missing ones filled
+    with 0). Otherwise feature_cols is derived from the current data.
+
+    Returns: full_df, X_train, y_train, X_test, y_test,
+             city_thresholds, feature_cols
+    """
+    city_targets    = {}
+    city_thresholds = {}
+
+    for city, df in engineered_frames.items():
+        target, thresh        = label_heatwave_hourly(df, city)
+        city_targets[city]    = target
+        city_thresholds[city] = thresh
+
+    hourly_frames = {}
+    for city, df in engineered_frames.items():
+        df         = df.copy()
+        df['y']    = city_targets[city]
+        df['city'] = city
+        df         = df[df.index.month.isin(SUMMER_MONTHS)]
+        df         = df.dropna()
+        hourly_frames[city] = df
+
+    full_df = pd.concat(hourly_frames.values()).sort_index()
+    full_df = full_df[~full_df.index.duplicated(keep='first')]
+    full_df = pd.get_dummies(full_df, columns=['city'], prefix='city')
+
+    train = full_df[full_df.index <= SPLIT_DATE]
+    test  = full_df[full_df.index >  SPLIT_DATE]
+
+    if feature_cols is None:
+        # Derive feature columns from current data (training path)
+        feature_cols = [c for c in full_df.columns if c != 'y']
+    else:
+        # Align to the saved feature columns (pre-trained path):
+        # add any missing columns as 0, then select in the correct order
+        for col in feature_cols:
+            if col not in full_df.columns:
+                full_df[col] = 0.0
+        # Re-slice after potential new columns
+        train = full_df[full_df.index <= SPLIT_DATE]
+        test  = full_df[full_df.index >  SPLIT_DATE]
+
+    X_train = train[feature_cols]
+    y_train = train['y']
+    X_test  = test[feature_cols]
+    y_test  = test['y']
+
+    return full_df, X_train, y_train, X_test, y_test, city_thresholds, feature_cols
+
+
 def run_training_pipeline(engineered_frames: dict,
                            city_climatologies: dict) -> tuple:
     """
@@ -310,53 +369,27 @@ def run_training_pipeline(engineered_frames: dict,
     Returns: model, feature_cols, X_test, y_test, city_thresholds
     """
 
-    # Step 1: Heatwave labels
+    # Step 1 & 2 & 3: Labels + Feature matrix + Split (shared helper)
     st.write("**Step 1/5:** Calculating heatwave labels...")
-    city_targets    = {}
-    city_thresholds = {}
-    label_rows      = []
+    st.write("**Step 2/5:** Building feature matrix (May–September)...")
+    st.write("**Step 3/5:** Train/Test split...")
 
-    for city, df in engineered_frames.items():
-        target, thresh          = label_heatwave_hourly(df, city)
-        city_targets[city]      = target
-        city_thresholds[city]   = thresh
+    full_df, X_train, y_train, X_test, y_test, city_thresholds, feature_cols = \
+        _build_dataset(engineered_frames)
+
+    # Show label summary
+    label_rows = []
+    for city, thresh in city_thresholds.items():
         label_rows.append({
             "City":          city,
             "P95 Threshold": round(float(thresh), 2),
-            "Klement Hours": int(target.fillna(0).sum()),
-            "Target y=1":    int(target.fillna(0).sum()),
         })
-
     st.dataframe(pd.DataFrame(label_rows), width='content')
-
-    # Step 2: Feature matrix (summer months only)
-    st.write("**Step 2/5:** Building feature matrix (May–September)...")
-    hourly_frames = {}
-
-    for city, df in engineered_frames.items():
-        df          = df.copy()
-        df['y']     = city_targets[city]
-        df['city']  = city
-        df          = df[df.index.month.isin(SUMMER_MONTHS)]
-        df          = df.dropna()
-        hourly_frames[city] = df
-
-    full_df = pd.concat(hourly_frames.values()).sort_index()
-    full_df = pd.get_dummies(full_df, columns=['city'], prefix='city')
 
     st.info(
         f"Dataset shape: {full_df.shape} | "
         f"Class balance: {full_df['y'].value_counts(normalize=True).round(3).to_dict()}"
     )
-
-    # Step 3: Time-based train/test split
-    st.write("**Step 3/5:** Train/Test split...")
-    train        = full_df[full_df.index <= SPLIT_DATE]
-    test         = full_df[full_df.index >  SPLIT_DATE]
-    feature_cols = [c for c in full_df.columns if c != 'y']
-
-    X_train, y_train = train[feature_cols], train['y']
-    X_test,  y_test  = test[feature_cols],  test['y']
 
     st.write(f"Train: `{X_train.shape}` | `{int(y_train.sum())}` positive samples")
     st.write(f"Test:  `{X_test.shape}`  | `{int(y_test.sum())}` positive samples")
@@ -388,9 +421,10 @@ def run_training_pipeline(engineered_frames: dict,
 
     model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=False)
 
-    # Serialize model and climatologies for download
+    # Serialize model + feature_cols together so the pre-trained path
+    # can always reconstruct an identical test set
     model_buffer = io.BytesIO()
-    joblib.dump(model, model_buffer)
+    joblib.dump({"model": model, "feature_cols": feature_cols}, model_buffer)
     model_buffer.seek(0)
 
     clim_buffer = io.BytesIO()
@@ -492,29 +526,29 @@ def show_evaluation(model, engineered_frames: dict, city_thresholds: dict,
     col_cm1, col_cm2 = st.columns(2)
 
     with col_cm1:
-        st.write("**Model**")
-        cm_model = confusion_matrix(y_test, y_pred)
-        fig, ax  = plt.subplots(figsize=(4, 3))
-        sns.heatmap(cm_model, annot=True, fmt='d', cmap='Blues', cbar=True, ax=ax,
-                    xticklabels=['Pred 0', 'Pred 1'],
-                    yticklabels=['Actual 0', 'Actual 1'])
-        ax.set_xlabel('Predicted')
-        ax.set_ylabel('Actual')
-        ax.set_title('Confusion Matrix – Model', color='steelblue')
-        plt.tight_layout()
-        st.pyplot(fig)
-        plt.close(fig)
-
-    with col_cm2:
         st.write("**Meteorological Baseline**")
         cm_base = confusion_matrix(y_test, y_baseline)
         fig, ax = plt.subplots(figsize=(4, 3))
         sns.heatmap(cm_base, annot=True, fmt='d', cmap='Reds', cbar=True, ax=ax,
                     xticklabels=['Pred 0', 'Pred 1'],
-                    yticklabels=['Actual 0', 'Actual 1'])
+                    yticklabels=['True 0', 'True 1'])
         ax.set_xlabel('Predicted')
-        ax.set_ylabel('Actual')
+        ax.set_ylabel('True')
         ax.set_title('Confusion Matrix – Baseline', color='firebrick')
+        plt.tight_layout()
+        st.pyplot(fig)
+        plt.close(fig)
+
+    with col_cm2:
+        st.write("**Model**")
+        cm_model = confusion_matrix(y_test, y_pred)
+        fig, ax  = plt.subplots(figsize=(4, 3))
+        sns.heatmap(cm_model, annot=True, fmt='d', cmap='Blues', cbar=True, ax=ax,
+                    xticklabels=['Pred 0', 'Pred 1'],
+                    yticklabels=['True 0', 'True 1'])
+        ax.set_xlabel('Predicted')
+        ax.set_ylabel('True')
+        ax.set_title('Confusion Matrix – Model', color='steelblue')
         plt.tight_layout()
         st.pyplot(fig)
         plt.close(fig)
@@ -633,21 +667,22 @@ def show_page():
     with tab1:
         st.header("📖 Data Explanation & Analysis")
 
-        # --- Pre-Heatwave Signal ---
-        st.subheader("🌡️ Pre-Heatwave Signal")
-        img_col1, img_col2 = st.columns(2)
-        with img_col1:
-            st.image(f"{BASE_DIR}figures/4_figs/Pre-Heatwave_Signal_Lyon.png", width='content')
-        with img_col2:
-            st.image(f"{BASE_DIR}figures/4_figs/Pre-Heatwave_Signal_Bordeaux.png", width='content')
-
         # --- Spearman Correlation ---
         st.subheader("📊 Spearman Correlation")
+        img_col1, img_col2 = st.columns(2)
+        with img_col1:
+            st.image(f"{BASE_DIR}figures/4_figs/Spearman_Bordeaux.png", width='content')
+        with img_col2:
+            st.image(f"{BASE_DIR}figures/4_figs/Spearman_Lyon.png", width='content')
+
+        # --- Pre-Heatwave Signal ---
+        st.subheader("🌡️ Pre-Heatwave Signal")
         img_col3, img_col4 = st.columns(2)
         with img_col3:
-            st.image(f"{BASE_DIR}figures/4_figs/Spearman_Lyon.png", width='content')
+            st.image(f"{BASE_DIR}figures/4_figs/Pre-Heatwave_Signal_Bordeaux.png", width='content')
         with img_col4:
-            st.image(f"{BASE_DIR}figures/4_figs/Spearman_Bordeaux.png", width='content')
+            st.image(f"{BASE_DIR}figures/4_figs/Pre-Heatwave_Signal_Lyon.png", width='content')
+
 
         # --- Feature Table ---
         st.subheader("🔍 Feature Overview")
@@ -794,33 +829,21 @@ def show_page():
                 if load_clicked:
                     with st.spinner("Loading pre-trained model..."):
                         try:
-                            model          = joblib.load(model_path)
-                            city_clim_load = joblib.load(clim_path)
+                            # Load model payload – supports both old (bare model)
+                            # and new (dict with feature_cols) format
+                            payload = joblib.load(model_path)
+                            if isinstance(payload, dict):
+                                model        = payload["model"]
+                                saved_fcols  = payload["feature_cols"]
+                            else:
+                                # Legacy: bare model without saved feature_cols
+                                model       = payload
+                                saved_fcols = None
 
-                            # Rebuild X_test / y_test from current data
-                            city_targets    = {}
-                            city_thresholds = {}
-                            for city, df in all_frames.items():
-                                target, thresh        = label_heatwave_hourly(df, city)
-                                city_targets[city]    = target
-                                city_thresholds[city] = thresh
-
-                            hourly_frames = {}
-                            for city, df in all_frames.items():
-                                df         = df.copy()
-                                df['y']    = city_targets[city]
-                                df['city'] = city
-                                df         = df[df.index.month.isin(SUMMER_MONTHS)]
-                                df         = df.dropna()
-                                hourly_frames[city] = df
-
-                            full_df      = pd.concat(hourly_frames.values()).sort_index()
-                            full_df      = full_df[~full_df.index.duplicated(keep='first')]
-                            full_df      = pd.get_dummies(full_df, columns=['city'], prefix='city')
-                            test         = full_df[full_df.index > SPLIT_DATE]
-                            feature_cols = [c for c in full_df.columns if c != 'y']
-                            X_test       = test[feature_cols]
-                            y_test       = test['y']
+                            # Rebuild X_test / y_test using the SAME logic as training,
+                            # aligned to the saved feature columns
+                            _, _, _, X_test, y_test, city_thresholds, feature_cols = \
+                                _build_dataset(all_frames, feature_cols=saved_fcols)
 
                             st.session_state['model']             = model
                             st.session_state['feature_cols']      = feature_cols
@@ -830,6 +853,7 @@ def show_page():
                             st.session_state['engineered_frames'] = all_frames
 
                             st.success("✅ Pre-trained model loaded successfully!")
+                            st.write(f"Test set shape: `{X_test.shape}` | `{int(y_test.sum())}` positive samples")
                         except Exception as e:
                             st.error(f"❌ Failed to load model: {e}")
 
@@ -850,8 +874,8 @@ def show_page():
     with tab3:
         st.header("🔍 SHAP Analysis")
 
-        img_col3, img_col4 = st.columns(2)
-        with img_col3:
-            st.image(f"{BASE_DIR}figures/4_figs/SHAP_false_positive.png", width='content')
-        with img_col4:
+        img_col1, img_col2 = st.columns(2)
+        with img_col1:
             st.image(f"{BASE_DIR}figures/4_figs/SHAP_top10_features.png", width='content')
+        with img_col2:
+            st.image(f"{BASE_DIR}figures/4_figs/SHAP_FP_vs_TN.png", width='content')
