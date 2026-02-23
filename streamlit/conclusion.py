@@ -194,7 +194,7 @@ def show_page():
         <div class="citem">
           <div class="check">✓</div>
           <div><div class="ctitle">Training cutoff prevents leakage</div>
-          <div class="cdesc">Training until 2016, testing on 2016–2023 ensures a realistic evaluation. The model generalises well to unseen recent events.</div></div>
+          <div class="cdesc">Training until 2016, testing on 2016–2025 ensures a realistic evaluation. The model generalises well to unseen recent events.</div></div>
         </div>
         <div class="citem">
           <div class="check">✓</div>
