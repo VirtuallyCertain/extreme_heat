@@ -26,7 +26,7 @@ import seaborn as sns
 from concurrent.futures import ThreadPoolExecutor
 
 
-BASE_DIR = "../"
+BASE_DIR = ""
 
 # ============================================================
 # CONSTANTS
