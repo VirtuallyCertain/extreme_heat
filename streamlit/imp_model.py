@@ -530,8 +530,8 @@ def show_evaluation(model, engineered_frames: dict, city_thresholds: dict,
         cm_base = confusion_matrix(y_test, y_baseline)
         fig, ax = plt.subplots(figsize=(4, 3))
         sns.heatmap(cm_base, annot=True, fmt='d', cmap='Reds', cbar=True, ax=ax,
-                    xticklabels=['Pred 0', 'Pred 1'],
-                    yticklabels=['True 0', 'True 1'])
+                    xticklabels=['0', '1'],
+                    yticklabels=['0', '1'])
         ax.set_xlabel('Predicted')
         ax.set_ylabel('True')
         ax.set_title('Confusion Matrix – Baseline', color='firebrick')
@@ -544,8 +544,8 @@ def show_evaluation(model, engineered_frames: dict, city_thresholds: dict,
         cm_model = confusion_matrix(y_test, y_pred)
         fig, ax  = plt.subplots(figsize=(4, 3))
         sns.heatmap(cm_model, annot=True, fmt='d', cmap='Blues', cbar=True, ax=ax,
-                    xticklabels=['Pred 0', 'Pred 1'],
-                    yticklabels=['True 0', 'True 1'])
+                    xticklabels=['0', '1'],
+                    yticklabels=['0', '1'])
         ax.set_xlabel('Predicted')
         ax.set_ylabel('True')
         ax.set_title('Confusion Matrix – Model', color='steelblue')
