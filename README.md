@@ -42,7 +42,7 @@ Methods are chosen with attention to minimizing computational impact.
 portal **data.gouv.fr**.
 
 - Dataset: *Données climatologiques de base – quotidiennes*
-- Period: **1950–2023**
+- Period: **1950–2024**
 - Key variable: **TX** (daily maximum temperature)
 
 https://www.data.gouv.fr/datasets/donnees-climatologiques-de-base-quotidiennes
@@ -108,3 +108,27 @@ This project does **not** include:
 - long-term climate projections
 - full physiological wet-bulb modeling
 - operational weather forecasting
+
+
+## Streamlit App (Live Demo)
+Live demo: [Extreme Heat Events – Streamlit App](https://extremeheatevents-nyaxau3gelzchhcsyuwhna.streamlit.app/)
+
+### How to use
+Use the **sidebar** to navigate through the four sections:
+
+| Section | Content |
+|---|---|
+| **1. Introduction & Motivation** | Context, research question, study cities |
+| **2. Data Explanation & First Model** | EDA, feature engineering, baseline Gradient Boosting |
+| **3. Improvements & Final Model** | Hyperparameter tuning, atmospheric features, evaluation |
+| **4. Conclusion & Next Steps** | Key findings, roadmap, business value |
+
+### Suggested walkthrough (3–5 minutes)
+1. Start with **Introduction & Motivation** for the overall context and scope.
+2. Continue to **Data Explanation & First Model** to understand the dataset and baseline modeling approach.
+3. Move to **Improvements & Final Model** to see what feature engineering and tuning improved predictions.
+4. Finish with **Conclusion & Next Steps** for the summary, roadmap, and practical impact.
+
+### Notes
+- The app is designed to be **efficient and lightweight** (laptop-friendly).
+- Plots and metrics displayed in the app are based on the processed datasets and modeling pipeline described in the report.
