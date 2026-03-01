@@ -79,4 +79,4 @@ To evolve this into a production-ready system:
     ```
 
 ---
-*Note: This project was developed as part of a Data Science certification (DataScientest).*
+*Note: This project was developed as part of a Data Science certification ([Liora](https://liora.io/)).*
