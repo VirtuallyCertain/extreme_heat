@@ -1,134 +1,80 @@
-# 🌡️ Extreme Heat Events in France
+# 🌡️ Extreme Heat Events in France: Predictive Modeling
+**An Early Warning System for Dangerous Heat Conditions (1990–2025)**
 
-## Research question
-🚨 **When are people exposed to dangerous heat conditions in France?**
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_svg)](https://extremeheatevents-france.streamlit.app)
 
-The objective is to build a predictor that can serve as an early heat alarm.
+## 🎯 Research Question
+**When are people exposed to dangerous heat conditions in France?**
 
-The project focuses on **extreme daily temperatures**, with a second-stage
-hourly exploration for selected historical events (e.g. the 2003 heatwave).
-Methods are chosen with attention to minimizing computational impact.
-
----
-
-## Project approach (DataScientest milestones)
-
-### Stage 1 – Data mining & visualization (Dec 19)
-- Start with temperature data only
-- Select stations
-- Explore daily temperature data
-- Understand data structure, biases, and coverage
-- Produce validated visualizations with commentary
-
-### Stage 2 – Pre-processing & feature engineering (Jan 9)
-- Clean data
-- Select variables
-- Engineer features for machine learning
-
-### Stage 3 – Modeling (Jan–Feb)
-- Baseline models (Random Forest)
-- Optimization and interpretation
-
-### Stage 4 – Application & defense (Feb)
-- Streamlit app to explore extreme heat events
-- Final report and GitHub repository
+The objective of this project is to build a predictor that serves as an early heat alarm. We focus on **extreme daily temperatures**, specifically the daily maximum temperature (**TX**), to identify patterns and predict events early enough to act.
 
 ---
 
-## Data sources
+## 🚀 Interactive Web App
+Explore our models and climate analysis in the live Streamlit application.
 
-### Daily data (main dataset)
-**Météo-France daily climatological data**, accessed via the official open-data
-portal **data.gouv.fr**.
+🔗 **[Live Demo: Extreme Heat Events App](https://extremeheatevents-france.streamlit.app)**
 
-- Dataset: *Données climatologiques de base – quotidiennes*
-- Period: **1950–2024**
-- Key variable: **TX** (daily maximum temperature)
-
-https://www.data.gouv.fr/datasets/donnees-climatologiques-de-base-quotidiennes
-
-**Search terms on data.gouv.fr**
-- `données climatologiques de base quotidiennes`
-- `quot_departement_XX`
-
-**Processed temperature data**
-https://drive.google.com/file/d/1Gk5nXnru6G_UXIPqt9Y_SqYJfYldZPkg
+### Suggested Walkthrough
+1.  [cite_start]**Introduction & Motivation:** Context on regionality (e.g., Paris's Urban Heat Island vs. Marseille's coastal effects)[cite: 7, 8].
+2.  **Data & Baseline:** View the initial approach using Météo-France daily data and Gradient Boosting.
+3.  **Final Model:** Explore the optimized **XGBoost** model trained on **Copernicus** data (1990–2025).
+4.  [cite_start]**Conclusion:** Summary of key findings and our technical roadmap[cite: 5].
 
 ---
 
-### Hourly data (optional, targeted use)
-Used only for in-depth analysis of selected extreme events.
+## 🛠️ Project Evolution & Methodology
 
-- Dataset: *Données climatologiques de base – horaires*
+### Study Regions
+We analyzed four French départements representing diverse climate zones:
+* **Paris (75)**, **Lyon (69)**, **Bordeaux (33)**, and **Marseille (13)**.
 
-https://www.data.gouv.fr/datasets/donnees-climatologiques-de-base-horaires/
+### Data Sources & Technical Stack
+The project evolved through two main stages:
 
-**Search terms**
-- `données climatologiques de base horaires`
-- `hor_departement_XX`
+* **First Model Phase:** Used Météo-France daily climatological data (*Données climatologiques de base – quotidiennes*) via [data.gouv.fr](https://www.data.gouv.fr/).
+* **Final Model Phase:** Climate data from the **[Copernicus Climate Data Store](https://cds.climate.copernicus.eu/)** (ERA5).
+* [cite_start]**Predictive Modeling:** Transitioned from Gradient Boosting to an optimized **XGBoost** architecture, incorporating atmospheric features like wind stagnation and persistence signals[cite: 9, 10].
 
-Preprocesssed temperature data: **https://drive.google.com/file/d/1Gk5nXnru6G_UXIPqt9Y_SqYJfYldZPkg/view?usp=drive_link **
----
-
-## Study regions
-Four French départements representing different regions:
-- Paris (75)
-- Lyon (69)
-- Bordeaux (33)
-- Marseille (13)
-
-For each département, the corresponding **RR-T-Vent daily file** is downloaded.
-Départements are identified by the first two digits of the postal code.
+### 🛰️ Data Acquisition (Copernicus API)
+The repository includes `copernicus_api_script.py`, which allows users to programmatically fetch updated climate data directly from the Copernicus Climate Data Store for further analysis or model retraining.
 
 ---
 
-## Station selection
-For each city, approximately **five stations** are selected using objective criteria:
-- long TX record
-- recent data availability
-- data completeness
-
-The same selection logic is applied to all cities using reproducible code.
+## 💡 Key Insights & Business Value
+* [cite_start]**Regionality Matters:** Paris shows stronger urban amplification, while Marseille is shaped by coastal effects[cite: 8].
+* [cite_start]**Feature Engineering:** Adding atmospheric stagnation and 48-hour rolling persistence features significantly made the model more robust[cite: 9, 15].
+* [cite_start]**Value Proposition:** The system is **lightweight**, runs on standard hardware, and is regionally customizable, providing a foundation for early warning systems for health services and urban planning[cite: 24, 27].
 
 ---
 
-## Current focus
-👉 **Data visualization**
-- explore distributions of TX
-- identify extreme days and years
-- compare cities
-- detect trends and potential biases
-
-This corresponds to **Stage 1: Data mining & Data visualization**.
+## 🔮 Roadmap & Next Steps
+[cite_start]To evolve this into a production-ready system[cite: 14]:
+* [cite_start]**Sequence Modeling:** Benchmark **LSTM or Transformer** models to evaluate longer temporal dependencies[cite: 20].
+* [cite_start]**Spatial Expansion:** Extend coverage to Spain, Italy, and Germany[cite: 17].
+* [cite_start]**Climate-Adaptive Thresholds:** Use rolling percentiles to account for long-term climate trends[cite: 18].
+* [cite_start]**Probabilistic Outputs:** Generate calibrated probabilities for better stakeholder risk assessment[cite: 19].
 
 ---
 
-## Scope limitations
-This project does **not** include:
-- long-term climate projections
-- full physiological wet-bulb modeling
-- operational weather forecasting
+## 💻 Installation & Usage
 
+### Local Setup
+1.  **Clone the repository:**
+    ```bash
+    git clone <repository-url>
+    cd <repository-folder>
+    ```
 
-## Streamlit App (Live Demo)
-Live demo: [Extreme Heat Events – Streamlit App](https://extremeheatevents-nyaxau3gelzchhcsyuwhna.streamlit.app/)
+2.  **Install dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-### How to use
-Use the **sidebar** to navigate through the four sections:
+3.  **Run the Streamlit App:**
+    ```bash
+    streamlit run streamlit/streamlit_main.py
+    ```
 
-| Section | Content |
-|---|---|
-| **1. Introduction & Motivation** | Context, research question, study cities |
-| **2. Data Explanation & First Model** | EDA, feature engineering, baseline Gradient Boosting |
-| **3. Improvements & Final Model** | Hyperparameter tuning, atmospheric features, evaluation |
-| **4. Conclusion & Next Steps** | Key findings, roadmap, business value |
-
-### Suggested walkthrough (3–5 minutes)
-1. Start with **Introduction & Motivation** for the overall context and scope.
-2. Continue to **Data Explanation & First Model** to understand the dataset and baseline modeling approach.
-3. Move to **Improvements & Final Model** to see what feature engineering and tuning improved predictions.
-4. Finish with **Conclusion & Next Steps** for the summary, roadmap, and practical impact.
-
-### Notes
-- The app is designed to be **efficient and lightweight** (laptop-friendly).
-- Plots and metrics displayed in the app are based on the processed datasets and modeling pipeline described in the report.
+---
+*Note: This project was developed as part of a Data Science certification (DataScientest).*
