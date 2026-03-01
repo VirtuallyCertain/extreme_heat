@@ -11,7 +11,7 @@ import streamlit as st
 # ]
 
 # For streamlit we need to change the "start" of the directory to the repo root
-BASE_DIR = ""
+BASE_DIR = "../"
 CITY_FILES = [
     f"{BASE_DIR}data/0_initial/Paris_Q_75_previous-1950-2024_RR-T-Vent.zip",
     f"{BASE_DIR}data/0_initial/Marseille_Q_13_previous-1950-2024_RR-T-Vent.zip",
