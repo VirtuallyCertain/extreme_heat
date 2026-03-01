@@ -43,7 +43,7 @@ LOCATIONS = [
     {"name": "bordeaux", "lat": 44.75, "lon": -0.50}
 ]
 
-OUTPUT_DIR = "pressure_data_final"
+OUTPUT_DIR = "copernicus_data_final"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 def fetch_period(year, month, days, label):
