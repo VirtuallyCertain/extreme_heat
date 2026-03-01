@@ -1,12 +1,14 @@
 # 🌡️ Extreme Heat Events in France: Predictive Modeling
 **An Early Warning System for Dangerous Heat Conditions (1990–2025)**
 
-![Python Version](https://img.shields.io/badge/python-3.10.19-blue.svg) [Streamlit App](https://extremeheatevents-france.streamlit.app)
+![Python Version](https://img.shields.io/badge/python-3.10.19-blue.svg) [![Streamlit App](https://img.shields.io/badge/Streamlit-App-FF4B4B?style=flat&logo=streamlit&logoColor=white)](https://extremeheatevents-france.streamlit.app)
 
 ## 🎯 Research Question
 **When are people exposed to dangerous heat conditions in France?**
 
-The objective of this project is to build a predictor that serves as an early heat alarm. We focus on **extreme daily temperatures**, specifically the daily maximum temperature (**TX**), to identify patterns and predict events early enough to act.
+The objective of this project is to build a predictor that serves as an early heat alarm. We focus on **extreme daily temperatures**, specifically the daily maximum temperature (**TX**), to identify patterns and predict events early enough to act. 
+
+> **Scientific Definition:** In this study, a heatwave is defined as a period where the daily maximum temperature exceeds the 95th percentile (0.95 quantile) of the historical local climate for at least three consecutive days.
 
 ---
 
@@ -17,9 +19,9 @@ Explore our models and climate analysis in the live Streamlit application.
 
 ### Suggested Walkthrough
 1. **Introduction & Motivation:** Context on regionality (e.g., Paris's Urban Heat Island vs. Marseille's coastal effects).
-2. **Data & Baseline:** View the initial approach using Météo-France daily data and Gradient Boosting.
-3. **Final Model:** Explore the optimized **XGBoost** model trained on **Copernicus** data (1990–2025).
-4. **Conclusion:** Summary of key findings and our technical roadmap.
+2. **Data Explanation & First Model:** View the initial approach using Météo-France daily data and Gradient Boosting.
+3. **Improvements & Final Model:** Explore the optimized **XGBoost** model trained on **Copernicus** data (1990–2025).
+4. **Conclusion & Next Steps:** Summary of key findings and our technical roadmap.
 
 ---
 
