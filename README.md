@@ -1,12 +1,13 @@
 # 🌡️ Extreme Heat Events in France: Predictive Modeling
 **An Early Warning System for Dangerous Heat Conditions (1990–2025)**
 
+![Python Version](https://img.shields.io/badge/python-3.10.19-blue.svg)
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_svg)](https://extremeheatevents-france.streamlit.app)
 
 ## 🎯 Research Question
-**When are people exposed to dangerous heat conditions in France?**
+[cite_start]**When are people exposed to dangerous heat conditions in France?** [cite: 4]
 
-The objective of this project is to build a predictor that serves as an early heat alarm. We focus on **extreme daily temperatures**, specifically the daily maximum temperature (**TX**), to identify patterns and predict events early enough to act.
+[cite_start]The objective of this project is to build a predictor that serves as an early heat alarm[cite: 4]. [cite_start]We focus on **extreme daily temperatures**, specifically the daily maximum temperature (**TX**), to identify patterns and predict events early enough to act[cite: 4].
 
 ---
 
@@ -16,10 +17,10 @@ Explore our models and climate analysis in the live Streamlit application.
 🔗 **[Live Demo: Extreme Heat Events App](https://extremeheatevents-france.streamlit.app)**
 
 ### Suggested Walkthrough
-1.  [cite_start]**Introduction & Motivation:** Context on regionality (e.g., Paris's Urban Heat Island vs. Marseille's coastal effects)[cite: 7, 8].
-2.  **Data & Baseline:** View the initial approach using Météo-France daily data and Gradient Boosting.
-3.  **Final Model:** Explore the optimized **XGBoost** model trained on **Copernicus** data (1990–2025).
-4.  [cite_start]**Conclusion:** Summary of key findings and our technical roadmap[cite: 5].
+1. [cite_start]**Introduction & Motivation:** Context on regionality (e.g., Paris's Urban Heat Island vs. Marseille's coastal effects)[cite: 7, 8].
+2. **Data & Baseline:** View the initial approach using Météo-France daily data and Gradient Boosting.
+3. **Final Model:** Explore the optimized **XGBoost** model trained on **Copernicus** data (1990–2025).
+4. [cite_start]**Conclusion:** Summary of key findings and our technical roadmap[cite: 5].
 
 ---
 
@@ -37,14 +38,14 @@ The project evolved through two main stages:
 * [cite_start]**Predictive Modeling:** Transitioned from Gradient Boosting to an optimized **XGBoost** architecture, incorporating atmospheric features like wind stagnation and persistence signals[cite: 9, 10].
 
 ### 🛰️ Data Acquisition (Copernicus API)
-The repository includes `copernicus_api_script.py`, which allows users to programmatically fetch updated climate data directly from the Copernicus Climate Data Store for further analysis or model retraining.
+The repository includes `copernicus_api_script.py`, which allows users to programmatically fetch updated climate data direktly from the Copernicus Climate Data Store for further analysis or model retraining.
 
 ---
 
 ## 💡 Key Insights & Business Value
 * [cite_start]**Regionality Matters:** Paris shows stronger urban amplification, while Marseille is shaped by coastal effects[cite: 8].
 * [cite_start]**Feature Engineering:** Adding atmospheric stagnation and 48-hour rolling persistence features significantly made the model more robust[cite: 9, 15].
-* [cite_start]**Value Proposition:** The system is **lightweight**, runs on standard hardware, and is regionally customizable, providing a foundation for early warning systems for health services and urban planning[cite: 24, 27].
+* [cite_start]**Value Proposition:** The system is **lightweight**, runs on standard hardware, and is regionally customizable, providing a foundation for early warning systems relevant to health services and urban planning[cite: 24, 27].
 
 ---
 
