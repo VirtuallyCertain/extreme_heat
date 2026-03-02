@@ -18,7 +18,7 @@ Explore our models and climate analysis in the live Streamlit application.
 🔗 **[Live Demo: Extreme Heat Events App](https://extremeheatevents-france.streamlit.app)**
 
 ### Suggested Walkthrough
-1. **Introduction & Motivation:** Context on regionality (e.g., Paris's Urban Heat Island vs. Marseille's coastal effects).
+1. **Introduction & Motivation:** Context on global warming trends in France, including raw data analysis and visualizations of the increasing frequency of heatwaves.
 2. **Data Explanation & First Model:** View the initial approach using Météo-France daily data and Gradient Boosting.
 3. **Improvements & Final Model:** Explore the optimized **XGBoost** model trained on **Copernicus** data (1990–2025).
 4. **Conclusion & Next Steps:** Summary of key findings and our technical roadmap.
