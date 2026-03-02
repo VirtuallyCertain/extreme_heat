@@ -38,6 +38,8 @@ The project evolved through two main stages:
 * **Final Model Phase:** Climate data from the **[Copernicus Climate Data Store](https://cds.climate.copernicus.eu/)** (ERA5).
 * **Predictive Modeling:** Transitioned from Gradient Boosting to an optimized **XGBoost** architecture, incorporating atmospheric features like wind stagnation and persistence signals.
 
+> **Note on Data Integrity:** To ensure a robust predictive system and avoid **data leakage**, all temperature features (including 2m temperature and temperatures at various upper-atmospheric levels) are used exclusively in a **lagged approach**. This ensures the model only learns from historical data to predict future events.
+
 ### 🛰️ Data Acquisition (Copernicus API)
 The repository includes `copernicus_api_script.py`, which allows users to programmatically fetch updated climate data directly from the Copernicus Climate Data Store for further analysis or model retraining.
 
