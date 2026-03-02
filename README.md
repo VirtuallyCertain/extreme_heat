@@ -6,9 +6,9 @@
 ## 🎯 Research Question
 **When are people exposed to dangerous heat conditions in France?**
 
-The objective of this project is to build a predictor that serves as an early heat alarm. We focus on **extreme daily temperatures**, specifically the daily maximum temperature (**TX**), to identify patterns and predict events early enough to act. 
+The objective of this project is to build a predictive that serves as an early heat warning system. We focus on **extreme daily temperatures**, specifically the daily maximum temperature (**TX**), to identify patterns and predict events early enough to act. 
 
-> **Scientific Definition:** In this study, a heatwave is defined as a period where the daily maximum temperature exceeds the 95th percentile (0.95 quantile) of the historical local climate for at least three consecutive days.
+> **Scientific Definition:** In this study, a heatwave is defined as a period where the daily maximum temperature exceeds the 95th percentile (0.95 quantile) of the local historical climate for at least three consecutive days.
 
 ---
 
@@ -34,8 +34,8 @@ We analyzed four French départements representing diverse climate zones:
 ### Data Sources & Technical Stack
 The project evolved through two main stages:
 
-* **First Model Phase:** Used Météo-France daily climatological data (*Données climatologiques de base – quotidiennes*) via [data.gouv.fr](https://www.data.gouv.fr/).
-* **Final Model Phase:** Climate data from the **[Copernicus Climate Data Store](https://cds.climate.copernicus.eu/)** (ERA5).
+* **First modeling phase (daily data):** Tmax and wind data (from five meteorological stations per city). Used Météo-France daily climatological data (*Données climatologiques de base – quotidiennes*) via [data.gouv.fr](https://www.data.gouv.fr/).
+* **Second modeling phase:** Temperature at various altitudes, air pressure, shortwave radiation, soil moisture, and wind data (reanalysis). Climate data from the **[Copernicus Climate Data Store](https://cds.climate.copernicus.eu/)** (ERA5).
 * **Predictive Modeling:** Transitioned from Gradient Boosting to an optimized **XGBoost** architecture, incorporating atmospheric features like wind stagnation and persistence signals.
 
 > **Note on Data Integrity:** To ensure a robust predictive system and avoid **data leakage**, all temperature features (including 2m temperature and temperatures at various upper-atmospheric levels) are used exclusively in a **lagged approach**. This ensures the model only learns from historical data to predict future events.
@@ -48,7 +48,7 @@ The repository includes `copernicus_api_script.py`, which allows users to progra
 ## 💡 Key Insights & Business Value
 * **Regionality Matters:** Paris shows stronger urban amplification, while Marseille is shaped by coastal effects.
 * **Feature Engineering:** Adding atmospheric stagnation and 48-hour rolling persistence features significantly made the model more robust.
-* **Value Proposition:** The system is **lightweight**, runs on standard hardware, and is regionally customizable, providing a foundation for early warning systems relevant to health services and urban planning.
+* **Value Proposition:** The system is **lightweight**, runs on standard hardware, and is regionally customizable, providing a foundation for early warning systems relevant to public health services and urban planning.
 
 ---
 
