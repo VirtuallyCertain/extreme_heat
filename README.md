@@ -4,7 +4,7 @@
 ![Python Version](https://img.shields.io/badge/python-3.10.19-blue.svg) [![Streamlit App](https://img.shields.io/badge/Streamlit-App-FF4B4B?style=flat&logo=streamlit&logoColor=white)](https://extremeheatevents-france.streamlit.app)
 
 ## 🎯 Research Question
-**When are people exposed to dangerous heat conditions in France?**
+**When are people exposed to dangerous heat conditions in France?**  
 
 The objective of this project is to build a predictive that serves as an early heat warning system. We focus on **extreme daily temperatures**, specifically the daily maximum temperature (**TX**), to identify patterns and predict events early enough to act. 
 
